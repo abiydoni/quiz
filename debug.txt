@@ -1,0 +1,8 @@
+POST: {"kontrol_presentasi":"1","aksi":"mulai_quiz"}
+POST: {"kontrol_presentasi":"1","aksi":"mulai_quiz"}
+POST: {"kontrol_presentasi":"1","aksi":"mulai_quiz"}
+POST: {"kontrol_presentasi":"1","aksi":"mulai_quiz"}
+POST: {"kontrol_presentasi":"1","aksi":"mulai_quiz"}
+POST: {"kontrol_presentasi":"1","aksi":"mulai_quiz"}
+POST: {"kontrol_presentasi":"1","aksi":"mulai_quiz"}
+POST: {"kontrol_presentasi":"1","aksi":"mulai_quiz"}
