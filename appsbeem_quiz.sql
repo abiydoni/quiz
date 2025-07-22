@@ -3,9 +3,9 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Jul 21, 2025 at 01:24 PM
--- Server version: 10.4.32-MariaDB
--- PHP Version: 8.2.12
+-- Waktu pembuatan: 22 Jul 2025 pada 19.28
+-- Versi server: 10.4.32-MariaDB
+-- Versi PHP: 8.2.12
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 START TRANSACTION;
@@ -24,7 +24,7 @@ SET time_zone = "+00:00";
 -- --------------------------------------------------------
 
 --
--- Table structure for table `tb_jawaban`
+-- Struktur dari tabel `tb_jawaban`
 --
 
 CREATE TABLE `tb_jawaban` (
@@ -39,7 +39,7 @@ CREATE TABLE `tb_jawaban` (
 -- --------------------------------------------------------
 
 --
--- Table structure for table `tb_peserta`
+-- Struktur dari tabel `tb_peserta`
 --
 
 CREATE TABLE `tb_peserta` (
@@ -51,7 +51,7 @@ CREATE TABLE `tb_peserta` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
--- Dumping data for table `tb_peserta`
+-- Dumping data untuk tabel `tb_peserta`
 --
 
 INSERT INTO `tb_peserta` (`id`, `id_quiz`, `nama`, `skor`, `waktu_join`) VALUES
@@ -60,12 +60,13 @@ INSERT INTO `tb_peserta` (`id`, `id_quiz`, `nama`, `skor`, `waktu_join`) VALUES
 (3, 1, 'Agus', 0, '2025-07-21 18:11:25'),
 (4, 1, 'Ayu', 0, '2025-07-21 18:11:25'),
 (5, 1, 'Supri', 0, '2025-07-21 18:12:07'),
-(6, 1, 'Hermawan', 0, '2025-07-21 18:12:07');
+(6, 1, 'Hermawan', 0, '2025-07-21 18:12:07'),
+(7, 1, 'ayu', 0, '2025-07-22 21:35:36');
 
 -- --------------------------------------------------------
 
 --
--- Table structure for table `tb_quiz`
+-- Struktur dari tabel `tb_quiz`
 --
 
 CREATE TABLE `tb_quiz` (
@@ -77,17 +78,16 @@ CREATE TABLE `tb_quiz` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
--- Dumping data for table `tb_quiz`
+-- Dumping data untuk tabel `tb_quiz`
 --
 
 INSERT INTO `tb_quiz` (`id`, `kode_quiz`, `nama_quiz`, `waktu_buat`, `host`) VALUES
-(1, 'E408FC', '17an', '2025-07-21 11:18:33', 'abiydoni@gmail.com'),
-(2, '36AD40', 'Tirakatan', '2025-07-21 12:36:54', 'abiydoni@gmail.com');
+(1, 'E408FC', '17an', '2025-07-21 11:18:33', 'abiydoni@gmail.com');
 
 -- --------------------------------------------------------
 
 --
--- Table structure for table `tb_soal`
+-- Struktur dari tabel `tb_soal`
 --
 
 CREATE TABLE `tb_soal` (
@@ -104,7 +104,7 @@ CREATE TABLE `tb_soal` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
--- Dumping data for table `tb_soal`
+-- Dumping data untuk tabel `tb_soal`
 --
 
 INSERT INTO `tb_soal` (`id`, `id_quiz`, `soal`, `jawaban_a`, `jawaban_b`, `jawaban_c`, `jawaban_d`, `jawaban_benar`, `durasi`, `gambar`) VALUES
@@ -114,7 +114,7 @@ INSERT INTO `tb_soal` (`id`, `id_quiz`, `soal`, `jawaban_a`, `jawaban_b`, `jawab
 -- --------------------------------------------------------
 
 --
--- Table structure for table `tb_status_quiz`
+-- Struktur dari tabel `tb_status_quiz`
 --
 
 CREATE TABLE `tb_status_quiz` (
@@ -122,22 +122,24 @@ CREATE TABLE `tb_status_quiz` (
   `id_quiz` int(11) NOT NULL,
   `id_soal` int(11) DEFAULT NULL,
   `waktu_mulai` datetime NOT NULL,
-  `mode` enum('waiting','soal','jawaban','grafik','ranking') DEFAULT 'soal'
+  `mode` enum('waiting','soal','jawaban','grafik','ranking','podium') DEFAULT 'soal'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
--- Dumping data for table `tb_status_quiz`
+-- Dumping data untuk tabel `tb_status_quiz`
 --
 
 INSERT INTO `tb_status_quiz` (`id`, `id_quiz`, `id_soal`, `waktu_mulai`, `mode`) VALUES
-(28, 1, NULL, '2025-07-21 15:54:05', 'waiting');
+(29, 1, NULL, '2025-07-22 21:07:26', 'waiting'),
+(30, 1, 1, '2025-07-22 21:46:23', 'ranking'),
+(31, 1, 2, '2025-07-22 23:25:12', 'podium');
 
 --
 -- Indexes for dumped tables
 --
 
 --
--- Indexes for table `tb_jawaban`
+-- Indeks untuk tabel `tb_jawaban`
 --
 ALTER TABLE `tb_jawaban`
   ADD PRIMARY KEY (`id`),
@@ -145,28 +147,28 @@ ALTER TABLE `tb_jawaban`
   ADD KEY `id_soal` (`id_soal`);
 
 --
--- Indexes for table `tb_peserta`
+-- Indeks untuk tabel `tb_peserta`
 --
 ALTER TABLE `tb_peserta`
   ADD PRIMARY KEY (`id`),
   ADD KEY `id_quiz` (`id_quiz`);
 
 --
--- Indexes for table `tb_quiz`
+-- Indeks untuk tabel `tb_quiz`
 --
 ALTER TABLE `tb_quiz`
   ADD PRIMARY KEY (`id`),
   ADD UNIQUE KEY `kode_quiz` (`kode_quiz`);
 
 --
--- Indexes for table `tb_soal`
+-- Indeks untuk tabel `tb_soal`
 --
 ALTER TABLE `tb_soal`
   ADD PRIMARY KEY (`id`),
   ADD KEY `id_quiz` (`id_quiz`);
 
 --
--- Indexes for table `tb_status_quiz`
+-- Indeks untuk tabel `tb_status_quiz`
 --
 ALTER TABLE `tb_status_quiz`
   ADD PRIMARY KEY (`id`),
@@ -174,64 +176,64 @@ ALTER TABLE `tb_status_quiz`
   ADD KEY `id_soal` (`id_soal`);
 
 --
--- AUTO_INCREMENT for dumped tables
+-- AUTO_INCREMENT untuk tabel yang dibuang
 --
 
 --
--- AUTO_INCREMENT for table `tb_jawaban`
+-- AUTO_INCREMENT untuk tabel `tb_jawaban`
 --
 ALTER TABLE `tb_jawaban`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
--- AUTO_INCREMENT for table `tb_peserta`
+-- AUTO_INCREMENT untuk tabel `tb_peserta`
 --
 ALTER TABLE `tb_peserta`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
 
 --
--- AUTO_INCREMENT for table `tb_quiz`
+-- AUTO_INCREMENT untuk tabel `tb_quiz`
 --
 ALTER TABLE `tb_quiz`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
--- AUTO_INCREMENT for table `tb_soal`
+-- AUTO_INCREMENT untuk tabel `tb_soal`
 --
 ALTER TABLE `tb_soal`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
--- AUTO_INCREMENT for table `tb_status_quiz`
+-- AUTO_INCREMENT untuk tabel `tb_status_quiz`
 --
 ALTER TABLE `tb_status_quiz`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=29;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=32;
 
 --
--- Constraints for dumped tables
+-- Ketidakleluasaan untuk tabel pelimpahan (Dumped Tables)
 --
 
 --
--- Constraints for table `tb_jawaban`
+-- Ketidakleluasaan untuk tabel `tb_jawaban`
 --
 ALTER TABLE `tb_jawaban`
   ADD CONSTRAINT `tb_jawaban_ibfk_1` FOREIGN KEY (`id_peserta`) REFERENCES `tb_peserta` (`id`) ON DELETE CASCADE,
   ADD CONSTRAINT `tb_jawaban_ibfk_2` FOREIGN KEY (`id_soal`) REFERENCES `tb_soal` (`id`) ON DELETE CASCADE;
 
 --
--- Constraints for table `tb_peserta`
+-- Ketidakleluasaan untuk tabel `tb_peserta`
 --
 ALTER TABLE `tb_peserta`
   ADD CONSTRAINT `tb_peserta_ibfk_1` FOREIGN KEY (`id_quiz`) REFERENCES `tb_quiz` (`id`) ON DELETE CASCADE;
 
 --
--- Constraints for table `tb_soal`
+-- Ketidakleluasaan untuk tabel `tb_soal`
 --
 ALTER TABLE `tb_soal`
   ADD CONSTRAINT `tb_soal_ibfk_1` FOREIGN KEY (`id_quiz`) REFERENCES `tb_quiz` (`id`) ON DELETE CASCADE;
 
 --
--- Constraints for table `tb_status_quiz`
+-- Ketidakleluasaan untuk tabel `tb_status_quiz`
 --
 ALTER TABLE `tb_status_quiz`
   ADD CONSTRAINT `tb_status_quiz_ibfk_1` FOREIGN KEY (`id_quiz`) REFERENCES `tb_quiz` (`id`) ON DELETE CASCADE,
