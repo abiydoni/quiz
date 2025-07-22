@@ -318,8 +318,8 @@ $id_soal_pertama = $soal_pertama ? $soal_pertama['id'] : '';
         }
       }
       if (formNext) {
-        if (data.mode === 'ranking') {
-          formNext.style.display = 'none';
+        if (data.mode === 'ranking' && data.current_index < data.total_soal) {
+          formNext.style.display = '';
         } else {
           formNext.style.display = 'none';
         }
@@ -381,8 +381,8 @@ $id_soal_pertama = $soal_pertama ? $soal_pertama['id'] : '';
         }
       }
       if (formNext) {
-        if (data.mode === 'ranking') {
-          formNext.style.display = 'none';
+        if (data.mode === 'ranking' && data.current_index < data.total_soal) {
+          formNext.style.display = '';
         } else {
           formNext.style.display = 'none';
         }
