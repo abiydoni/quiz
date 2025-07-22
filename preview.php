@@ -487,20 +487,22 @@ $id_soal_pertama = $soal_pertama ? $soal_pertama['id'] : '';
         startTimer();
       } else if (mode === 'jawaban') {
         lastSoalId = null;
-        tombolKontrol = `<form method='post' action='host.php?kode=<?= htmlspecialchars($kode) ?>'>
-          <input type='hidden' name='kontrol_presentasi' value='1'>
-          <input type='hidden' name='aksi' value='ke_grafik'>
-          <button class='px-5 py-2 bg-white text-blue-700 border-2 border-blue-700 hover:bg-blue-700 hover:text-white rounded-full text-lg font-bold shadow transition-all'>
-            <i class='fa-solid fa-chart-column'></i> Grafik
-          </button>
-        </form>`;
         // Card jawaban benar
         let html = `<div class='flex flex-col items-center w-full p-0${withAnim ? ' fade-in jawaban-anim' : ''}'>`;
         html += `<div class='w-full flex flex-col items-center'>
           <div class='mt-8 mb-4 w-full flex justify-center'>
             <div class='w-full text-center'>
               <div class='text-3xl md:text-4xl font-extrabold text-green-700 mb-2 flex items-center justify-center gap-2'><i class='fa-solid fa-circle-check'></i> Jawaban Benar</div>
-              ${data.gambar ? `<img src='assets/soal/${data.gambar}' alt='Gambar Soal' class='my-4 max-h-72 rounded-lg mx-auto shadow-lg'>` : ''}
+              <div class='relative flex flex-row items-center justify-center gap-4'>
+                <form method='post' action='host.php?kode=${encodeURIComponent('<?= htmlspecialchars($kode) ?>')}' style='position:absolute;left:0;top:-16px;z-index:10;'>
+                  <input type='hidden' name='kontrol_presentasi' value='1'>
+                  <input type='hidden' name='aksi' value='ke_grafik'>
+                  <button class='px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-base font-bold shadow transition-all flex items-center gap-2'><i class='fa-solid fa-chart-column'></i> Grafik</button>
+                </form>
+                <div class='w-full flex justify-center'>
+                  ${data.gambar ? `<img src='assets/soal/${data.gambar}' alt='Gambar Soal' class='my-4 max-h-72 rounded-lg mx-auto shadow-lg'>` : ''}
+                </div>
+              </div>
               <div class='text-4xl font-extrabold text-green-600 mb-6'>${data['jawaban_' + data.jawaban_benar.toLowerCase()]}</div>
             </div>
           </div>
