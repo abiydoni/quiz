@@ -158,7 +158,15 @@ $id_soal_pertama = $soal_pertama ? $soal_pertama['id'] : '';
   </style>
 </head>
 <body class="min-h-screen min-w-screen flex items-center justify-center" style="background:url('assets/img/bg.jpg') center center/cover no-repeat fixed;">
-  <div id="progress-badge" class="fixed top-8 right-8 z-50"></div>
+  <div id="progress-timer-container" class="fixed top-12 right-20 z-50 flex flex-col items-center min-w-[180px]">
+    <div class="backdrop-blur-md bg-white/70 rounded-2xl shadow-lg px-6 py-3 flex flex-col items-center gap-2 w-full">
+      <div id="progress-badge" class="text-center w-full"></div>
+      <div id="timer-fixed" class="flex flex-col items-center w-full" style="display:none;">
+        <div class='text-xs font-semibold text-gray-600 mb-0.5'>Waktu tersisa</div>
+        <div id='timer' class='text-5xl font-extrabold text-red-600 tracking-widest text-center drop-shadow-lg'></div>
+      </div>
+    </div>
+  </div>
   <div id="kontrol-quiz-float"></div>
   <div class="glass max-w-[90vw] max-h-[90vh] w-[90vw] h-[90vh] rounded-2xl z-10 flex items-center justify-center mx-auto my-auto p-4 md:p-8">
     <div class="flex flex-col justify-center items-center h-full w-full gap-6">
@@ -317,7 +325,10 @@ $id_soal_pertama = $soal_pertama ? $soal_pertama['id'] : '';
         </div>
       </div>`;
       konten.innerHTML = html;
-      
+      isCountdown = true;
+      // Sembunyikan progress-timer-container saat countdown
+      const progressTimerContainer = document.getElementById('progress-timer-container');
+      if (progressTimerContainer) progressTimerContainer.style.display = 'none';
       // Start countdown animation
       const countdownInterval = setInterval(() => {
         countdownValue--;
@@ -355,6 +366,12 @@ $id_soal_pertama = $soal_pertama ? $soal_pertama['id'] : '';
               });
             }
           }
+          // Countdown selesai, tampilkan timer dan progress-timer-container
+          isCountdown = false;
+          const timerFixed = document.getElementById('timer-fixed');
+          if (timerFixed && mode === 'soal') timerFixed.style.display = '';
+          const progressTimerContainer = document.getElementById('progress-timer-container');
+          if (progressTimerContainer && mode === 'soal') progressTimerContainer.style.display = '';
         }
       }, 1000);
     }
@@ -363,6 +380,12 @@ $id_soal_pertama = $soal_pertama ? $soal_pertama['id'] : '';
       const konten = document.getElementById('konten-presentasi');
       let html = '';
       let tombolKontrol = '';
+      // Tampilkan/hide progress-timer-container sesuai mode dan countdown
+      const progressTimerContainer = document.getElementById('progress-timer-container');
+      if (progressTimerContainer) progressTimerContainer.style.display = (!isCountdown && mode === 'soal') ? '' : 'none';
+      // Tampilkan/hide timer-fixed sesuai mode dan countdown
+      const timerFixed = document.getElementById('timer-fixed');
+      if (timerFixed) timerFixed.style.display = (mode === 'soal' && !isCountdown) ? '' : 'none';
       if (mode === 'waiting') {
         const jumlahPeserta = data.peserta ? data.peserta.length : 0;
         const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(window.location.origin+'/join.php')}`;
@@ -436,8 +459,10 @@ $id_soal_pertama = $soal_pertama ? $soal_pertama['id'] : '';
               <div class='text-4xl md:text-6xl font-extrabold text-indigo-50 drop-shadow-lg mb-4' style='font-family:Fredoka,sans-serif; letter-spacing:0.5px;'>${data.soal || ''}</div>
               ${(data.gambar && data.gambar !== '' && data.gambar !== null) ? `<img src='assets/soal/${data.gambar}' alt='Gambar Soal' class='my-4 max-h-72 rounded-lg mx-auto shadow-lg'>` : ''}
             </div>
-          </div>
-        </div>`;
+          </div>`;
+        // Timer di bawah jumlah soal saja, tidak perlu di sini
+        html += `<div class='w-full h-3 bg-gray-200 rounded-full overflow-hidden mb-2'><div id='progress-bar' class='h-3 progress-anim rounded-full' style='width:100%'></div></div>`;
+        // Card pilihan jawaban
         const warna = [
           'bg-gradient-to-r from-red-500 to-pink-400',
           'bg-gradient-to-r from-blue-500 to-cyan-400',
@@ -456,12 +481,6 @@ $id_soal_pertama = $soal_pertama ? $soal_pertama['id'] : '';
           const teks = typeof data['jawaban_' + h.toLowerCase()] !== 'undefined' && data['jawaban_' + h.toLowerCase()] !== null ? data['jawaban_' + h.toLowerCase()] : '-';
           html += `<div class='${warna[i]} text-white rounded-2xl p-6 text-xl font-bold flex items-center shadow-xl transition-all select-none jawaban-anim jawaban-hover w-full' style='animation-delay:${i*0.12}s'>${ikon[i]}${teks}</div>`;
         });
-        html += `</div>`;
-        html += `<div class='flex flex-col items-center gap-2 mb-2'>
-          <div class='text-lg text-gray-600'>Waktu tersisa</div>
-          <div id='timer' class='text-5xl font-extrabold text-red-500'></div>
-        </div>`;
-        html += `<div class='w-full h-3 bg-gray-200 rounded-full overflow-hidden mb-2'><div id='progress-bar' class='h-3 progress-anim rounded-full' style='width:100%'></div></div>`;
         html += `</div>`;
         konten.innerHTML = html;
         if (tombolKontrol) renderKontrolFloat(tombolKontrol); else clearKontrolFloat();
