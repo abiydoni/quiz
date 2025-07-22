@@ -168,6 +168,19 @@ $id_soal_pertama = $soal_pertama ? $soal_pertama['id'] : '';
     </div>
   </div>
   <div id="kontrol-quiz-float"></div>
+  <form id='form-ranking-fixed' style='position:fixed;top:3rem;left:5rem;z-index:50;'>
+    <button id='btn-ranking-fixed' type='button' class='px-5 py-2 bg-white text-orange-700 border-2 border-orange-700 hover:bg-orange-700 hover:text-white rounded-full text-lg font-bold shadow transition-all'>
+      <i class='fa-solid fa-trophy'></i> Ranking
+    </button>
+  </form>
+  <form id='form-next-fixed' style='position:fixed;top:3rem;left:5rem;z-index:50;display:none;'>
+    <button id='btn-next-fixed' type='button' class='px-5 py-2 bg-white text-indigo-700 border-2 border-indigo-700 hover:bg-indigo-700 hover:text-white rounded-full text-lg font-bold shadow transition-all'>
+      <i class='fa-solid fa-forward'></i> Soal Berikutnya
+    </button>
+  </form>
+  <div id="countdown-overlay" style="display:none;position:fixed;z-index:1000;top:0;left:0;width:100vw;height:100vh;background:rgba(30,30,40,0.7);backdrop-filter:blur(2px);align-items:center;justify-content:center;">
+    <div id="countdown-number" style="font-size:7rem;font-weight:bold;color:#fff;text-shadow:0 4px 32px #000,0 0 40px #a78bfa;">3</div>
+  </div>
   <div class="glass max-w-[90vw] max-h-[90vh] w-[90vw] h-[90vh] rounded-2xl z-10 flex items-center justify-center mx-auto my-auto p-4 md:p-8">
     <div class="flex flex-col justify-center items-center h-full w-full gap-6">
       <div id="konten-presentasi" class="flex flex-col justify-center items-center h-full w-full gap-6"></div>
@@ -284,6 +297,32 @@ $id_soal_pertama = $soal_pertama ? $soal_pertama['id'] : '';
       // Update lastMode dan lastSoalId setelah renderPresentasi
       lastMode = data.mode;
       lastSoalId = data.id_soal;
+      // Sembunyikan tombol Ranking jika mode ranking, tampilkan tombol Next jika mode ranking
+      var btnRanking = document.getElementById('btn-ranking-fixed');
+      var formNext = document.getElementById('form-next-fixed');
+      if (btnRanking) {
+        if (data.mode === 'ranking') {
+          btnRanking.style.display = 'none';
+        } else {
+          btnRanking.style.display = '';
+        }
+      }
+      if (formNext) {
+        if (data.mode === 'ranking') {
+          formNext.style.display = '';
+        } else {
+          formNext.style.display = 'none';
+        }
+      }
+      // Sembunyikan tombol Ranking jika mode grafik, tampilkan tombol Ranking jika mode grafik
+      var btnRanking = document.getElementById('btn-ranking-fixed');
+      if (btnRanking) {
+        if (data.mode === 'grafik') {
+          btnRanking.style.display = '';
+        } else {
+          btnRanking.style.display = 'none';
+        }
+      }
       setTimeout(pollingStatus, 2000);
     }
 
@@ -305,6 +344,32 @@ $id_soal_pertama = $soal_pertama ? $soal_pertama['id'] : '';
       currentIndex = data.current_index || 0;
       renderProgressBadge();
       renderPresentasi(data);
+      // Sembunyikan tombol Ranking jika mode ranking, tampilkan tombol Next jika mode ranking
+      var btnRanking = document.getElementById('btn-ranking-fixed');
+      var formNext = document.getElementById('form-next-fixed');
+      if (btnRanking) {
+        if (data.mode === 'ranking') {
+          btnRanking.style.display = 'none';
+        } else {
+          btnRanking.style.display = '';
+        }
+      }
+      if (formNext) {
+        if (data.mode === 'ranking') {
+          formNext.style.display = '';
+        } else {
+          formNext.style.display = 'none';
+        }
+      }
+      // Sembunyikan tombol Ranking jika mode grafik, tampilkan tombol Ranking jika mode grafik
+      var btnRanking = document.getElementById('btn-ranking-fixed');
+      if (btnRanking) {
+        if (data.mode === 'grafik') {
+          btnRanking.style.display = '';
+        } else {
+          btnRanking.style.display = 'none';
+        }
+      }
     }
 
     function renderProgressBadge() {
@@ -401,12 +466,16 @@ $id_soal_pertama = $soal_pertama ? $soal_pertama['id'] : '';
               </form>
               <div class="bg-white bg-opacity-50 rounded-xl shadow px-4 py-2 flex flex-col items-center">
                 <div class="text-4xl text-gray-900 font-semibold mb-1">Silahkan buka: <span class='font-mono'>${window.location.origin}/join.php</span></div>
-                <div class="text-xl text-gray-900 mb-1">atau scan QR code:</div>
-                <img src="${qrUrl}" alt="QR Join" class="rounded shadow w-50 h-50 object-contain mx-auto">
-              </div>
-              <div class="bg-white bg-opacity-50 rounded-xl shadow px-4 py-2 flex flex-col items-center">
-                <div class="text-xl text-gray-900 font-semibold mb-1">PIN Game:</div>
-                <div class="font-mono text-5xl font-extrabold text-indigo-700 tracking-widest bg-white bg-opacity-60 px-6 py-2 rounded-xl shadow border-2 border-indigo-300">${data.kode_quiz || '<?= htmlspecialchars($kode) ?>'}</div>
+                <div class="w-full flex flex-col sm:flex-row items-center justify-center gap-4">
+                  <div class="flex flex-col items-center justify-center">
+                    <div class="text-xl text-gray-900 mb-1">atau scan QR code:</div>
+                    <img src="${qrUrl}" alt="QR Join" class="rounded shadow w-44 h-44 object-contain">
+                  </div>
+                  <div class="flex flex-col items-center justify-center">
+                    <div class="text-xl text-gray-900 font-semibold mb-1 mt-4 sm:mt-0">PIN Game:</div>
+                    <div class="font-mono text-5xl font-extrabold text-indigo-700 tracking-widest bg-white bg-opacity-60 px-6 py-2 rounded-xl shadow border-2 border-indigo-300">${data.kode_quiz || '<?= htmlspecialchars($kode) ?>'}</div>
+                  </div>
+                </div>
               </div>
               <div class="bg-white bg-opacity-50 rounded-xl shadow px-4 py-2 flex flex-col items-center mt-auto">
                 <div class="text-xs text-gray-900 font-semibold mb-1">Jumlah Peserta</div>
@@ -494,11 +563,9 @@ $id_soal_pertama = $soal_pertama ? $soal_pertama['id'] : '';
             <div class='w-full text-center'>
               <div class='text-3xl md:text-4xl font-extrabold text-green-700 mb-2 flex items-center justify-center gap-2'><i class='fa-solid fa-circle-check'></i> Jawaban Benar</div>
               <div class='relative flex flex-row items-center justify-center gap-4'>
-                <form method='post' action='host.php?kode=${encodeURIComponent('<?= htmlspecialchars($kode) ?>')}' style='position:absolute;left:0;top:-16px;z-index:10;'>
-                  <input type='hidden' name='kontrol_presentasi' value='1'>
-                  <input type='hidden' name='aksi' value='ke_grafik'>
-                  <button class='px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-base font-bold shadow transition-all flex items-center gap-2'><i class='fa-solid fa-chart-column'></i> Grafik</button>
-                </form>
+                <div style='position:absolute;left:0;top:-16px;z-index:10;'>
+                  <button id='btn-grafik' type='button' class='px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-base font-bold shadow transition-all flex items-center gap-2'><i class='fa-solid fa-chart-column'></i> Grafik</button>
+                </div>
                 <div class='w-full flex justify-center'>
                   ${data.gambar ? `<img src='assets/soal/${data.gambar}' alt='Gambar Soal' class='my-4 max-h-72 rounded-lg mx-auto shadow-lg'>` : ''}
                 </div>
@@ -529,25 +596,26 @@ $id_soal_pertama = $soal_pertama ? $soal_pertama['id'] : '';
           } else {
             efekBenar = ' opacity-60';
           }
-          html += `<div class='${warna[i]} text-white rounded-2xl p-6 text-xl font-bold flex items-center shadow-xl transition-all select-none${efekBenar}'>${ikon[i]}${teks} ${isBenar ? '<i class=\"fa-solid fa-check ml-2\"></i>' : ''}</div>`;
+          html += `<div class='${warna[i]} bg-opacity-100 text-white rounded-2xl p-6 text-xl font-bold flex items-center shadow-xl transition-all select-none${efekBenar}'>${ikon[i]}${teks} ${isBenar ? "<i class='fa-solid fa-check ml-2'></i>" : ''}</div>`;
         });
         html += `</div>`;
         konten.innerHTML = html;
         if (tombolKontrol) renderKontrolFloat(tombolKontrol); else clearKontrolFloat();
       } else if (mode === 'grafik') {
         lastSoalId = null;
-        tombolKontrol = `<form method='post' action='host.php?kode=<?= htmlspecialchars($kode) ?>'>
-          <input type='hidden' name='kontrol_presentasi' value='1'>
-          <input type='hidden' name='aksi' value='ke_ranking'>
-          <button class='px-5 py-2 bg-white text-orange-700 border-2 border-orange-700 hover:bg-orange-700 hover:text-white rounded-full text-lg font-bold shadow transition-all'>
-            <i class='fa-solid fa-trophy'></i> Ranking
-          </button>
-        </form>`;
         // Statistik jawaban
-        let html = `<div class='flex flex-col items-center w-full p-0 fade-in statistik-anim'>`;
+        let html = `<div class='flex flex-col items-center w-full p-0 fade-in statistik-anim' style='position:relative;'>`;
+        html += `
+          <div style='position:absolute;top:0;left:0;z-index:10;'>
+            <form method='post' action='host.php?kode=<?= htmlspecialchars($kode) ?>'>
+              <input type='hidden' name='kontrol_presentasi' value='1'>
+              <input type='hidden' name='aksi' value='ke_ranking'>
+            </form>
+          </div>
+        `;
         html += `<div class='w-full flex flex-col items-center'>
-          <div class='mt-8 mb-4 w-full flex justify-center'>
-            <div class='w-full text-center'>
+          <div class='w-full flex justify-center'>
+            <div class='w-full text-center bg-white bg-opacity-50 rounded-xl shadow px-4 py-2 flex flex-col items-center'>
               <div class='text-2xl font-bold text-blue-700 flex items-center justify-center gap-2 mb-4'><i class='fa-solid fa-chart-column'></i> Statistik Jawaban</div>
               <div id='statistik-jawaban' class='flex flex-row justify-center gap-4'></div>
             </div>
@@ -555,16 +623,9 @@ $id_soal_pertama = $soal_pertama ? $soal_pertama['id'] : '';
         </div>`;
         konten.innerHTML = html;
         renderStatistikJawaban();
-        if (tombolKontrol) renderKontrolFloat(tombolKontrol); else clearKontrolFloat();
+        clearKontrolFloat();
       } else if (mode === 'ranking') {
         lastSoalId = null;
-        tombolKontrol = `<form method='post' action='host.php?kode=<?= htmlspecialchars($kode) ?>'>
-          <input type='hidden' name='kontrol_presentasi' value='1'>
-          <input type='hidden' name='aksi' value='soal_berikutnya'>
-          <button class='px-5 py-2 bg-white text-indigo-700 border-2 border-indigo-700 hover:bg-indigo-700 hover:text-white rounded-full text-lg font-bold shadow transition-all'>
-            <i class='fa-solid fa-forward'></i> Soal Berikutnya
-          </button>
-        </form>`;
         // Leaderboard
         let html = `<div class='flex flex-col items-center w-full p-0 fade-in'>`;
         html += `<div class='w-full flex flex-col items-center'>
@@ -651,16 +712,38 @@ $id_soal_pertama = $soal_pertama ? $soal_pertama['id'] : '';
     async function renderLeaderboard() {
       const res = await fetch('api/leaderboard.php?kode=<?= $kode ?>');
       const data = await res.json();
-      let html = '<ol class="space-y-3">';
-      data.forEach((p, i) => {
-        html += `<li class="rank-anim bg-orange-50 border-l-4 border-orange-400 p-3 rounded shadow-sm flex justify-between items-center">
-          <span><b>#${i+1}.</b> <span class="font-semibold">${p.nama}</span></span>
-          <span class="font-bold text-orange-700 text-lg">${p.skor} Poin</span>
+      let html = '<ol class="space-y-1">';
+      const medal = [
+        '<span class="text-2xl mr-2">🥇</span>',
+        '<span class="text-2xl mr-2">🥈</span>',
+        '<span class="text-2xl mr-2">🥉</span>'
+      ];
+      const bg = [
+        'from-yellow-300 to-yellow-100 border-yellow-400',
+        'from-gray-300 to-gray-100 border-gray-400',
+        'from-orange-300 to-orange-100 border-orange-400'
+      ];
+      data.slice(0, 10).forEach((p, i) => {
+        let extra = '';
+        let bgClass = 'from-white to-gray-50 border-gray-200';
+        let textClass = 'text-gray-800';
+        if (i < 3) {
+          extra = medal[i];
+          bgClass = bg[i];
+          textClass = 'text-yellow-900';
+        }
+        html += `<li class="rank-anim bg-gradient-to-r ${bgClass} border-l-8 p-2 rounded-lg shadow flex justify-between items-center animate-popin" style="animation-delay:${i*0.07}s">
+          <div class="flex items-center gap-2">${extra}<span class="font-bold text-base">${p.nama}</span></div>
+          <span class="font-extrabold text-lg text-orange-700 flex items-center gap-2"><i class='fa-solid fa-star'></i> ${p.skor} Poin</span>
         </li>`;
       });
       html += '</ol>';
       document.getElementById('leaderboard-presentasi').innerHTML = html;
     }
+    // Animasi popin
+    const styleRank = document.createElement('style');
+    styleRank.innerHTML = `@keyframes popin {from{opacity:0;transform:scale(0.7);}to{opacity:1;transform:scale(1);}}.animate-popin{animation:popin 0.7s cubic-bezier(.4,2,.6,1);}`;
+    document.head.appendChild(styleRank);
 
     // Badge peserta modern dengan warna tetap, urut join, tidak random posisi
     function renderPesertaBadge(peserta) {
@@ -684,8 +767,8 @@ $id_soal_pertama = $soal_pertama ? $soal_pertama['id'] : '';
       peserta.forEach(nama => {
         const w = getPesertaColor(nama);
         const f = getPesertaFont(nama);
-        el.innerHTML += `<div style="background:${w};font-family:${f};color:#222;font-size:1.3rem;font-weight:bold;padding:0.6rem 1.3rem;border-radius:1.2rem;box-shadow:0 4px 24px #0002;display:inline-flex;align-items:center;gap:0.7rem;">
-          <i class='fa-solid fa-user-astronaut'></i> ${nama}
+        el.innerHTML += `<div style="background:${w};font-family:${f};color:#222;font-size:0.8rem;font-weight:bold;padding:0.15em 0.5rem;border-radius:0.3rem;line-height:1;height:1.6em;box-shadow:0 4px 24px #0002;display:inline-flex;align-items:center;gap:0.3rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">
+          <i class='fa-solid fa-user-astronaut' style='font-size:0.8em;margin-right:0.3em;'></i> ${nama}
         </div>`;
       });
     }
@@ -758,6 +841,61 @@ $id_soal_pertama = $soal_pertama ? $soal_pertama['id'] : '';
     document.head.appendChild(style);
 
     pollingStatus();
+  </script>
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      var btnRanking = document.getElementById('btn-ranking-fixed');
+      if (btnRanking) {
+        btnRanking.addEventListener('click', function() {
+          var formData = new FormData();
+          formData.append('kontrol_presentasi', '1');
+          formData.append('aksi', 'ke_ranking');
+          fetch('host.php?kode=<?= htmlspecialchars($kode) ?>', {
+            method: 'POST',
+            body: formData
+          }).then(function() {
+            if (typeof pollStatusSekali === 'function') {
+              pollStatusSekali();
+            }
+          });
+        });
+      }
+      var btnNext = document.getElementById('btn-next-fixed');
+      if (btnNext) {
+        btnNext.addEventListener('click', function() {
+          var overlay = document.getElementById('countdown-overlay');
+          var number = document.getElementById('countdown-number');
+          if (overlay && number) {
+            overlay.style.display = 'flex';
+            let count = 3;
+            number.textContent = count;
+            let interval = setInterval(function() {
+              count--;
+              if (count > 0) {
+                number.textContent = count;
+              } else if (count === 0) {
+                number.textContent = 'GO!';
+              } else {
+                clearInterval(interval);
+                overlay.style.display = 'none';
+                // Setelah countdown, fetch ke backend
+                var formData = new FormData();
+                formData.append('kontrol_presentasi', '1');
+                formData.append('aksi', 'soal_berikutnya');
+                fetch('host.php?kode=<?= htmlspecialchars($kode) ?>', {
+                  method: 'POST',
+                  body: formData
+                }).then(function() {
+                  if (typeof pollStatusSekali === 'function') {
+                    pollStatusSekali();
+                  }
+                });
+              }
+            }, 1000);
+          }
+        });
+      }
+    });
   </script>
 </body>
 </html> 
