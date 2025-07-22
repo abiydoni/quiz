@@ -6,7 +6,7 @@ $action = $_GET['action'] ?? '';
 if ($action == 'status_presentasi') {
     $kode = $_GET['kode'] ?? '';
     $stmt = $pdo->prepare("SELECT q.id AS id_quiz, s.id_soal, s.waktu_mulai, s.mode,
-        t.soal, t.jawaban_a, t.jawaban_b, t.jawaban_c, t.jawaban_d, t.jawaban_benar, t.durasi
+        t.soal, t.jawaban_a, t.jawaban_b, t.jawaban_c, t.jawaban_d, t.jawaban_benar, t.durasi, t.gambar
         FROM tb_quiz q
         JOIN tb_status_quiz s ON s.id_quiz = q.id
         LEFT JOIN tb_soal t ON t.id = s.id_soal

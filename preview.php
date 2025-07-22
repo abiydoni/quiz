@@ -8,6 +8,12 @@ $stmt->execute([$kode]);
 $quiz = $stmt->fetch();
 if (!$quiz) die('Quiz tidak ditemukan.');
 $id_quiz = $quiz['id'];
+
+// Ambil soal pertama untuk tombol Mulai
+$stmt = $pdo->prepare("SELECT id FROM tb_soal WHERE id_quiz = ? ORDER BY id ASC LIMIT 1");
+$stmt->execute([$id_quiz]);
+$soal_pertama = $stmt->fetch();
+$id_soal_pertama = $soal_pertama ? $soal_pertama['id'] : '';
 ?>
 <!DOCTYPE html>
 <html lang="id">
@@ -184,6 +190,8 @@ $id_quiz = $quiz['id'];
     let pesertaPosisi = null; // Untuk posisi tetap wall of names
     let pesertaTerakhir = [];
     let pesertaWallObserver = null;
+    // Flag untuk animasi jawaban hanya sekali
+    let sudahAnimasiJawaban = false;
 
     // Function to generate consistent color based on name
     function getPesertaColor(nama) {
@@ -242,9 +250,6 @@ $id_quiz = $quiz['id'];
       // Check if mode or soal berubah
       const modeChanged = (data.mode !== lastMode);
       const soalChanged = (data.id_soal !== lastSoalId);
-      lastMode = data.mode;
-      lastSoalId = data.id_soal;
-      
       soalAktif = data.id_soal;
       mode = data.mode;
       timerDurasi = data.durasi || 20;
@@ -252,14 +257,46 @@ $id_quiz = $quiz['id'];
       totalSoal = data.total_soal || 0;
       currentIndex = data.current_index || 0;
       renderProgressBadge();
-      
-      if (modeChanged || soalChanged) {
-        renderPresentasi(data);
+      // Logika animasi jawaban hanya sekali
+      if (data.mode === 'jawaban') {
+        if (!sudahAnimasiJawaban || modeChanged || soalChanged) {
+          renderPresentasi(data, true);
+          sudahAnimasiJawaban = true;
+        } else {
+          // Jangan renderPresentasi ulang, biarkan tampilan diam
+        }
       } else {
-        // Hanya update timer dan progress bar
-        updateTimerOnly();
+        sudahAnimasiJawaban = false;
+        if (modeChanged || soalChanged) {
+          renderPresentasi(data, true);
+        } else {
+          updateTimerOnly();
+        }
       }
+      // Update lastMode dan lastSoalId setelah renderPresentasi
+      lastMode = data.mode;
+      lastSoalId = data.id_soal;
       setTimeout(pollingStatus, 2000);
+    }
+
+    // Fungsi untuk langsung polling status sekali dan renderPresentasi tanpa delay
+    async function pollStatusSekali() {
+      const res = await fetch('api/quiz.php?action=status_presentasi&kode=<?= $kode ?>');
+      const data = await res.json();
+      if (!data || (!data.id_soal && data.mode !== 'waiting')) {
+        document.getElementById('konten-presentasi').innerHTML = '<div class="text-center text-gray-400">Belum ada soal aktif.</div>';
+        return;
+      }
+      lastMode = data.mode;
+      lastSoalId = data.id_soal;
+      soalAktif = data.id_soal;
+      mode = data.mode;
+      timerDurasi = data.durasi || 20;
+      waktuMulai = data.waktu_mulai;
+      totalSoal = data.total_soal || 0;
+      currentIndex = data.current_index || 0;
+      renderProgressBadge();
+      renderPresentasi(data);
     }
 
     function renderProgressBadge() {
@@ -322,7 +359,7 @@ $id_quiz = $quiz['id'];
       }, 1000);
     }
 
-    function renderPresentasi(data) {
+    function renderPresentasi(data, withAnim = true) {
       const konten = document.getElementById('konten-presentasi');
       let html = '';
       let tombolKontrol = '';
@@ -333,11 +370,11 @@ $id_quiz = $quiz['id'];
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4 h-full w-full">
             <!-- Sidebar kiri -->
             <div class="flex flex-col gap-4 h-full items-stretch relative">
-              <form method='post' action='host.php?kode=<?= htmlspecialchars($kode) ?>' class='w-full'>
+              <form id="form-mulai-quiz" method='post' action='host.php?kode=<?= htmlspecialchars($kode) ?>' class='w-full'>
                 <input type='hidden' name='kontrol_presentasi' value='1'>
                 <input type='hidden' name='aksi' value='tampilkan_soal'>
-                <input type='hidden' name='id_soal' value='<?= isset($soals[0]['id']) ? $soals[0]['id'] : '' ?>'>
-                <button class='w-full px-4 py-2 bg-white text-purple-700 border-2 border-purple-700 hover:bg-purple-700 hover:text-white rounded-full text-lg font-bold shadow transition-all mb-2'>Mulai</button>
+                <input type='hidden' name='id_soal' value='<?= htmlspecialchars($id_soal_pertama) ?>'>
+                <button id="btn-mulai-quiz" type="button" class='w-full px-4 py-2 bg-white text-purple-700 border-2 border-purple-700 hover:bg-purple-700 hover:text-white rounded-full text-lg font-bold shadow transition-all mb-2'>Mulai</button>
               </form>
               <div class="bg-white bg-opacity-50 rounded-xl shadow px-4 py-2 flex flex-col items-center">
                 <div class="text-4xl text-gray-900 font-semibold mb-1">Silahkan buka: <span class='font-mono'>${window.location.origin}/join.php</span></div>
@@ -361,24 +398,43 @@ $id_quiz = $quiz['id'];
           </div>
         `;
         konten.innerHTML = html;
+        // Pasang event listener tombol Mulai setelah render
+        const btnMulai = document.getElementById('btn-mulai-quiz');
+        if (btnMulai) {
+          btnMulai.addEventListener('click', function(e) {
+            e.preventDefault();
+            // Ambil data form sebelum renderCountdown (karena form akan hilang)
+            const form = document.getElementById('form-mulai-quiz');
+            const formData = new FormData(form);
+            const formAction = form.action;
+            countdownValue = 3;
+            renderCountdown();
+            setTimeout(function() {
+                // Submit form via fetch dengan data yang sudah diambil
+                fetch(formAction, {
+                  method: 'POST',
+                  body: formData
+                }).then(async function(response) {
+                  const text = await response.text();
+                  // Setelah sukses, polling cepat sampai mode soal
+                  pollingCepatSampaiSoal();
+                }).catch(function(err) {
+                });
+            }, 3000);
+          });
+        }
         renderPesertaBadge(data.peserta || []);
         pollingPesertaBadge();
         lastSoalId = null;
         clearKontrolFloat();
       } else if (mode === 'soal') {
-        tombolKontrol = `<form method='post' action='host.php?kode=<?= htmlspecialchars($kode) ?>' class='kontrol-float-anim'>
-          <input type='hidden' name='kontrol_presentasi' value='1'>
-          <input type='hidden' name='aksi' value='ke_jawaban'>
-          <button class='px-5 py-2 bg-white text-purple-700 border-2 border-purple-700 hover:bg-purple-700 hover:text-white rounded-full text-lg font-bold shadow transition-all'>
-            <i class='fa-solid fa-circle-check'></i> Jawaban
-          </button>
-        </form>`;
-        html = `<div class='flex flex-col items-center justify-center w-full max-w-2xl mx-auto p-0 h-full'>`;
+        tombolKontrol = '';
+        html = `<div class='flex flex-col items-center justify-center w-full mx-auto p-0 h-full'>`;
         html += `<div class='w-full flex flex-col items-center'>
           <div class='mt-8 mb-4 w-full flex justify-center'>
             <div class='w-full text-center'>
-              <div class='text-3xl md:text-4xl font-extrabold text-gray-800 mb-2' style='font-family:Fredoka,sans-serif;'>${data.soal || ''}</div>
-              ${data.gambar ? `<img src='assets/soal/${data.gambar}' alt='Gambar Soal' class='my-4 max-h-72 rounded-lg mx-auto shadow-lg'>` : ''}
+              <div class='text-4xl md:text-6xl font-extrabold text-indigo-50 drop-shadow-lg mb-4' style='font-family:Fredoka,sans-serif; letter-spacing:0.5px;'>${data.soal || ''}</div>
+              ${(data.gambar && data.gambar !== '' && data.gambar !== null) ? `<img src='assets/soal/${data.gambar}' alt='Gambar Soal' class='my-4 max-h-72 rounded-lg mx-auto shadow-lg'>` : ''}
             </div>
           </div>
         </div>`;
@@ -398,7 +454,7 @@ $id_quiz = $quiz['id'];
         html += `<div class='grid grid-cols-1 md:grid-cols-2 gap-6 w-full px-2 md:px-0 mb-4'>`;
         opsi.forEach((h, i) => {
           const teks = typeof data['jawaban_' + h.toLowerCase()] !== 'undefined' && data['jawaban_' + h.toLowerCase()] !== null ? data['jawaban_' + h.toLowerCase()] : '-';
-          html += `<div class='${warna[i]} text-white rounded-2xl p-6 text-xl font-bold flex items-center shadow-xl transition-all select-none jawaban-anim jawaban-hover' style='animation-delay:${i*0.12}s'>${ikon[i]}${teks}</div>`;
+          html += `<div class='${warna[i]} text-white rounded-2xl p-6 text-xl font-bold flex items-center shadow-xl transition-all select-none jawaban-anim jawaban-hover w-full' style='animation-delay:${i*0.12}s'>${ikon[i]}${teks}</div>`;
         });
         html += `</div>`;
         html += `<div class='flex flex-col items-center gap-2 mb-2'>
@@ -420,7 +476,7 @@ $id_quiz = $quiz['id'];
           </button>
         </form>`;
         // Card jawaban benar
-        let html = `<div class='flex flex-col items-center w-full p-0 fade-in jawaban-anim'>`;
+        let html = `<div class='flex flex-col items-center w-full p-0${withAnim ? ' fade-in jawaban-anim' : ''}'>`;
         html += `<div class='w-full flex flex-col items-center'>
           <div class='mt-8 mb-4 w-full flex justify-center'>
             <div class='w-full text-center'>
@@ -445,7 +501,14 @@ $id_quiz = $quiz['id'];
         opsi.forEach((h, i) => {
           const isBenar = h === data.jawaban_benar;
           const teks = typeof data['jawaban_' + h.toLowerCase()] !== 'undefined' && data['jawaban_' + h.toLowerCase()] !== null ? data['jawaban_' + h.toLowerCase()] : '-';
-          html += `<div class='${warna[i]} text-white rounded-2xl p-6 text-xl font-bold flex items-center shadow-xl transition-all select-none jawaban-anim' style='animation-delay:${i*0.12}s' ${isBenar ? 'ring-4 ring-green-400 scale-105' : 'opacity-60'}>${ikon[i]}${teks} ${isBenar ? '<i class="fa-solid fa-check ml-2"></i>' : ''}</div>`;
+          // Efek khusus hanya untuk jawaban benar dan hanya saat animasi awal
+          let efekBenar = '';
+          if (isBenar) {
+            efekBenar = ' animate-pulse-smooth ring-8 ring-green-400 shadow-2xl';
+          } else {
+            efekBenar = ' opacity-60';
+          }
+          html += `<div class='${warna[i]} text-white rounded-2xl p-6 text-xl font-bold flex items-center shadow-xl transition-all select-none${efekBenar}'>${ikon[i]}${teks} ${isBenar ? '<i class=\"fa-solid fa-check ml-2\"></i>' : ''}</div>`;
         });
         html += `</div>`;
         konten.innerHTML = html;
@@ -533,10 +596,8 @@ $id_quiz = $quiz['id'];
         });
         
         if (!response.ok) {
-          console.error('Failed to auto next to jawaban');
         }
       } catch (error) {
-        console.error('Error:', error);
       }
     }
 
@@ -627,6 +688,53 @@ $id_quiz = $quiz['id'];
       const el = document.getElementById('kontrol-quiz-float');
       if (el) el.innerHTML = '';
     }
+
+    // Polling cepat setelah submit Mulai, agar soal langsung tampil
+    function pollingCepatSampaiSoal() {
+      let intervalId = setInterval(async function() {
+        const res = await fetch('api/quiz.php?action=status_presentasi&kode=<?= $kode ?>');
+        const data = await res.json();
+        if (data && data.mode === 'soal') {
+          lastMode = data.mode;
+          lastSoalId = data.id_soal;
+          soalAktif = data.id_soal;
+          mode = data.mode;
+          timerDurasi = data.durasi || 20;
+          waktuMulai = data.waktu_mulai;
+          totalSoal = data.total_soal || 0;
+          currentIndex = data.current_index || 0;
+          renderProgressBadge();
+          renderPresentasi(data);
+          clearInterval(intervalId);
+        }
+      }, 300);
+    }
+
+    // Fungsi untuk update timer dan progress bar saja
+    function updateTimerOnly() {
+      // Update timer
+      const timerEl = document.getElementById('timer');
+      if (timerEl && waktuMulai && timerDurasi) {
+        const mulai = new Date(waktuMulai).getTime();
+        const now = Date.now();
+        const sisa = timerDurasi - Math.floor((now - mulai) / 1000);
+        timerEl.innerText = sisa > 0 ? sisa : 0;
+      }
+      // Update progress bar
+      const bar = document.getElementById('progress-bar');
+      if (bar && waktuMulai && timerDurasi) {
+        const mulai = new Date(waktuMulai).getTime();
+        const now = Date.now();
+        const sisa = timerDurasi - Math.floor((now - mulai) / 1000);
+        const persen = Math.max(0, Math.min(100, (sisa / timerDurasi) * 100));
+        bar.style.width = persen + '%';
+      }
+    }
+
+    // Animasi smooth pulse untuk jawaban benar
+    const style = document.createElement('style');
+    style.innerHTML = `@keyframes pulse-smooth {0%{transform:scale(1.08);box-shadow:0 0 0 0 #22c55e55;}50%{transform:scale(1.15);box-shadow:0 0 32px 8px #22c55e88;}100%{transform:scale(1.08);box-shadow:0 0 0 0 #22c55e55;}}.animate-pulse-smooth{animation:pulse-smooth 1.2s cubic-bezier(.4,2,.6,1) infinite;}`;
+    document.head.appendChild(style);
 
     pollingStatus();
   </script>
