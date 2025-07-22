@@ -76,6 +76,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['kontrol_presentasi'])
         }
         header("Location: host.php?kode=$kode");
         exit;
+    } elseif ($aksi === 'podium' && $status) {
+        $stmt = $pdo->prepare("UPDATE tb_status_quiz SET mode = 'podium' WHERE id = ?");
+        $stmt->execute([$status['id']]);
+        header("Location: host.php?kode=$kode");
+        exit;
     }
 }
 ?>

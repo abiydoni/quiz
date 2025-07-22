@@ -178,6 +178,16 @@ $id_soal_pertama = $soal_pertama ? $soal_pertama['id'] : '';
       <i class='fa-solid fa-forward'></i> Soal Berikutnya
     </button>
   </form>
+  <form id='form-grafik-fixed' style='position:fixed;top:3rem;left:5rem;z-index:50;display:none;'>
+    <button id='btn-grafik-fixed' type='button' class='px-5 py-2 bg-white text-blue-700 border-2 border-blue-700 hover:bg-blue-700 hover:text-white rounded-full text-lg font-bold shadow transition-all'>
+      <i class='fa-solid fa-chart-column'></i> Grafik
+    </button>
+  </form>
+  <form id='form-podium-fixed' style='position:fixed;top:3rem;left:5rem;z-index:50;display:none;'>
+    <button id='btn-podium-fixed' type='button' class='px-5 py-2 bg-white text-green-700 border-2 border-green-700 hover:bg-green-700 hover:text-white rounded-full text-lg font-bold shadow transition-all'>
+      <i class='fa-solid fa-award'></i> Podium
+    </button>
+  </form>
   <div id="countdown-overlay" style="display:none;position:fixed;z-index:1000;top:0;left:0;width:100vw;height:100vh;background:rgba(30,30,40,0.7);backdrop-filter:blur(2px);align-items:center;justify-content:center;">
     <div id="countdown-number" style="font-size:7rem;font-weight:bold;color:#fff;text-shadow:0 4px 32px #000,0 0 40px #a78bfa;">3</div>
   </div>
@@ -309,7 +319,7 @@ $id_soal_pertama = $soal_pertama ? $soal_pertama['id'] : '';
       }
       if (formNext) {
         if (data.mode === 'ranking') {
-          formNext.style.display = '';
+          formNext.style.display = 'none';
         } else {
           formNext.style.display = 'none';
         }
@@ -321,6 +331,22 @@ $id_soal_pertama = $soal_pertama ? $soal_pertama['id'] : '';
           btnRanking.style.display = '';
         } else {
           btnRanking.style.display = 'none';
+        }
+      }
+      var formGrafik = document.getElementById('form-grafik-fixed');
+      if (formGrafik) {
+        if (data.mode === 'jawaban') {
+          formGrafik.style.display = '';
+        } else {
+          formGrafik.style.display = 'none';
+        }
+      }
+      var formPodium = document.getElementById('form-podium-fixed');
+      if (formPodium) {
+        if (data.mode === 'ranking' && data.current_index >= data.total_soal) {
+          formPodium.style.display = '';
+        } else {
+          formPodium.style.display = 'none';
         }
       }
       setTimeout(pollingStatus, 2000);
@@ -356,7 +382,7 @@ $id_soal_pertama = $soal_pertama ? $soal_pertama['id'] : '';
       }
       if (formNext) {
         if (data.mode === 'ranking') {
-          formNext.style.display = '';
+          formNext.style.display = 'none';
         } else {
           formNext.style.display = 'none';
         }
@@ -368,6 +394,22 @@ $id_soal_pertama = $soal_pertama ? $soal_pertama['id'] : '';
           btnRanking.style.display = '';
         } else {
           btnRanking.style.display = 'none';
+        }
+      }
+      var formGrafik = document.getElementById('form-grafik-fixed');
+      if (formGrafik) {
+        if (data.mode === 'jawaban') {
+          formGrafik.style.display = '';
+        } else {
+          formGrafik.style.display = 'none';
+        }
+      }
+      var formPodium = document.getElementById('form-podium-fixed');
+      if (formPodium) {
+        if (data.mode === 'ranking' && data.current_index >= data.total_soal) {
+          formPodium.style.display = '';
+        } else {
+          formPodium.style.display = 'none';
         }
       }
     }
@@ -563,9 +605,6 @@ $id_soal_pertama = $soal_pertama ? $soal_pertama['id'] : '';
             <div class='w-full text-center'>
               <div class='text-3xl md:text-4xl font-extrabold text-green-700 mb-2 flex items-center justify-center gap-2'><i class='fa-solid fa-circle-check'></i> Jawaban Benar</div>
               <div class='relative flex flex-row items-center justify-center gap-4'>
-                <div style='position:absolute;left:0;top:-16px;z-index:10;'>
-                  <button id='btn-grafik' type='button' class='px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-base font-bold shadow transition-all flex items-center gap-2'><i class='fa-solid fa-chart-column'></i> Grafik</button>
-                </div>
                 <div class='w-full flex justify-center'>
                   ${data.gambar ? `<img src='assets/soal/${data.gambar}' alt='Gambar Soal' class='my-4 max-h-72 rounded-lg mx-auto shadow-lg'>` : ''}
                 </div>
@@ -606,21 +645,15 @@ $id_soal_pertama = $soal_pertama ? $soal_pertama['id'] : '';
         // Statistik jawaban
         let html = `<div class='flex flex-col items-center w-full p-0 fade-in statistik-anim' style='position:relative;'>`;
         html += `
-          <div style='position:absolute;top:0;left:0;z-index:10;'>
-            <form method='post' action='host.php?kode=<?= htmlspecialchars($kode) ?>'>
-              <input type='hidden' name='kontrol_presentasi' value='1'>
-              <input type='hidden' name='aksi' value='ke_ranking'>
-            </form>
-          </div>
-        `;
-        html += `<div class='w-full flex flex-col items-center'>
-          <div class='w-full flex justify-center'>
-            <div class='w-full text-center bg-white bg-opacity-50 rounded-xl shadow px-4 py-2 flex flex-col items-center'>
-              <div class='text-2xl font-bold text-blue-700 flex items-center justify-center gap-2 mb-4'><i class='fa-solid fa-chart-column'></i> Statistik Jawaban</div>
-              <div id='statistik-jawaban' class='flex flex-row justify-center gap-4'></div>
+          <div class='w-full flex flex-col items-center'>
+            <div class='mt-8 mb-4 w-full flex justify-center'>
+              <div class='w-full text-center'>
+                <div class='text-2xl font-bold text-blue-700 flex items-center justify-center gap-2 mb-4'><i class='fa-solid fa-chart-column'></i> Statistik Jawaban</div>
+                <div id='statistik-jawaban' class='flex flex-row justify-center gap-4'></div>
+              </div>
             </div>
           </div>
-        </div>`;
+        `;
         konten.innerHTML = html;
         renderStatistikJawaban();
         clearKontrolFloat();
@@ -639,6 +672,107 @@ $id_soal_pertama = $soal_pertama ? $soal_pertama['id'] : '';
         konten.innerHTML = html;
         renderLeaderboard();
         if (tombolKontrol) renderKontrolFloat(tombolKontrol); else clearKontrolFloat();
+      } else if (mode === 'podium') {
+        lastSoalId = null;
+        // Ambil leaderboard 3 besar
+        fetch('api/leaderboard.php?kode=<?= $kode ?>')
+          .then(res => res.json())
+          .then(podiumData => {
+            podiumData = podiumData.slice(0, 3);
+            let warna = ['from-yellow-400 to-yellow-200', 'from-gray-300 to-gray-100', 'from-orange-300 to-orange-100'];
+            let medal = ['🥇', '🥈', '🥉'];
+            let anim = ['animate-podium-juara1', 'animate-podium-juara2', 'animate-podium-juara3'];
+            let tinggi = ['h-56', 'h-40', 'h-32'];
+            let order = [1, 0, 2]; // Juara 2, 1, 3 (urutan visual podium)
+            let html = `
+            <div class='fixed inset-0 pointer-events-none z-40'>
+              <div id='star-bg-podium' style='position:absolute;width:100vw;height:100vh;top:0;left:0;z-index:1;'></div>
+            </div>
+            <div class='flex flex-col items-center justify-center w-full h-full fade-in relative z-50'>
+              <div class='text-5xl md:text-6xl font-extrabold text-center text-yellow-400 mb-4 flex items-center justify-center gap-4 animate-podium-title'><i class='fa-solid fa-award'></i> Selamat Para Juara!</div>
+              <div class='text-2xl md:text-3xl font-bold text-center text-white mb-20 animate-podium-subtitle'>Inilah 3 Peserta Terbaik Quiz Ini</div>
+              <div class='flex flex-row items-end justify-center gap-6 w-full max-w-3xl mx-auto mb-8 relative'>`;
+            order.forEach((idx, i) => {
+              const p = podiumData[idx] || { nama: '-', skor: 0 };
+              let crown = '';
+              let glow = '';
+              if (idx === 1) {
+                crown = `<svg class='absolute -top-16 left-1/2 -translate-x-1/2 z-20 animate-crown-bounce' width='60' height='40' viewBox='0 0 60 40' fill='none'><path d='M5 35L20 10L30 30L40 10L55 35' stroke='#facc15' stroke-width='6' stroke-linecap='round' stroke-linejoin='round'/><circle cx='20' cy='10' r='4' fill='#fde047' stroke='#fbbf24' stroke-width='2'/><circle cx='40' cy='10' r='4' fill='#fde047' stroke='#fbbf24' stroke-width='2'/><circle cx='30' cy='30' r='4' fill='#fde047' stroke='#fbbf24' stroke-width='2'/></svg>`;
+                glow = 'podium-glow';
+              }
+              html += `<div class='flex flex-col items-center justify-end w-32 ${tinggi[idx]} relative ${anim[idx]}'>
+                ${crown}
+                <div class='absolute -top-10 left-1/2 -translate-x-1/2 z-10 text-5xl drop-shadow-lg animate-medal-bounce'>${medal[idx]}</div>
+                <div class='w-full rounded-t-2xl rounded-b-lg bg-gradient-to-t ${warna[idx]} shadow-xl flex flex-col items-center justify-end h-full p-2 border-4 border-white relative ${glow} pb-12'>
+                  <div class='font-extrabold text-2xl md:text-3xl text-gray-900 mb-1 text-center animate-podium-nama'>${p.nama}</div>
+                  <div class='font-bold text-lg text-gray-700 mb-2 text-center animate-podium-skor'>${p.skor} Poin</div>
+                </div>
+                <div class='absolute -bottom-8 left-1/2 -translate-x-1/2 w-full flex flex-col items-center text-2xl font-bold text-gray-700 bg-white rounded-full px-4 py-1 shadow border-2 border-gray-200 animate-podium-juara text-center'>
+                  Juara
+                  <span class='text-3xl font-extrabold leading-none'>${idx+1}</span>
+                </div>
+              </div>`;
+            });
+            html += `</div>
+              <div class='text-lg text-white font-semibold mt-4 animate-podium-ucapan'>Terima kasih untuk semua peserta!</div>
+              <button id='btn-podium-selesai' class='mt-6 px-8 py-3 bg-green-600 hover:bg-green-700 text-white rounded-full text-xl font-bold shadow-lg transition-all animate-podium-ucapan'>
+                <i class='fa-solid fa-check-circle mr-2'></i> Selesai
+              </button>
+            </div>`;
+            // Animasi podium & efek
+            const stylePodium = document.createElement('style');
+            stylePodium.innerHTML = `
+            @keyframes podiumJuara1 {0%{transform:translateY(80px) scale(0.7);opacity:0;} 60%{transform:translateY(-10px) scale(1.1);opacity:1;} 80%{transform:translateY(0) scale(0.95);} 100%{transform:translateY(0) scale(1);}}
+            @keyframes podiumJuara2 {0%{transform:translateY(80px) scale(0.7);opacity:0;} 70%{transform:translateY(-5px) scale(1.05);opacity:1;} 100%{transform:translateY(0) scale(1);}}
+            @keyframes podiumJuara3 {0%{transform:translateY(80px) scale(0.7);opacity:0;} 80%{transform:translateY(-2px) scale(1.02);opacity:1;} 100%{transform:translateY(0) scale(1);}}
+            .animate-podium-juara1{animation:podiumJuara1 1.1s cubic-bezier(.4,2,.6,1) both;}
+            .animate-podium-juara2{animation:podiumJuara2 1.3s cubic-bezier(.4,2,.6,1) both;}
+            .animate-podium-juara3{animation:podiumJuara3 1.5s cubic-bezier(.4,2,.6,1) both;}
+            .podium-glow{box-shadow:0 0 32px 8px #fde047cc,0 0 0 8px #facc15cc;}
+            .animate-medal-bounce{animation:bounceMedal 1.2s cubic-bezier(.4,2,.6,1);}
+            @keyframes bounceMedal{0%{transform:scale(0.5);}60%{transform:scale(1.3);}100%{transform:scale(1);}}
+            .animate-crown-bounce{animation:crownBounce 1.2s cubic-bezier(.4,2,.6,1);}
+            @keyframes crownBounce{0%{transform:translateY(-30px) scale(0.7);}60%{transform:translateY(0) scale(1.2);}100%{transform:translateY(0) scale(1);}}
+            .animate-podium-title{animation:fadeInTitle 1.2s cubic-bezier(.4,2,.6,1);}
+            @keyframes fadeInTitle{0%{opacity:0;transform:scale(0.7);}100%{opacity:1;transform:scale(1);}}
+            .animate-podium-subtitle{animation:fadeInSubtitle 1.3s cubic-bezier(.4,2,.6,1);}
+            @keyframes fadeInSubtitle{0%{opacity:0;transform:translateY(-20px);}100%{opacity:1;transform:translateY(0);}}
+            .animate-podium-nama{animation:fadeInNama 1.4s cubic-bezier(.4,2,.6,1);}
+            @keyframes fadeInNama{0%{opacity:0;transform:scale(0.7);}100%{opacity:1;transform:scale(1);}}
+            .animate-podium-skor{animation:fadeInSkor 1.5s cubic-bezier(.4,2,.6,1);}
+            @keyframes fadeInSkor{0%{opacity:0;transform:scale(0.7);}100%{opacity:1;transform:scale(1);}}
+            .animate-podium-juara{animation:fadeInJuara 1.6s cubic-bezier(.4,2,.6,1);}
+            @keyframes fadeInJuara{0%{opacity:0;transform:translateY(20px);}100%{opacity:1;transform:translateY(0);}}
+            .animate-podium-ucapan{animation:fadeInUcapan 1.7s cubic-bezier(.4,2,.6,1);}
+            @keyframes fadeInUcapan{0%{opacity:0;}100%{opacity:1;}}
+            `;
+            document.head.appendChild(stylePodium);
+            // Partikel bintang
+            const starBg = document.getElementById('star-bg-podium');
+            if (starBg) {
+              let stars = '';
+              for (let i = 0; i < 40; i++) {
+                const size = Math.random() * 2 + 1;
+                const left = Math.random() * 100;
+                const top = Math.random() * 100;
+                const dur = Math.random() * 2 + 2;
+                stars += `<div style='position:absolute;left:${left}vw;top:${top}vh;width:${size}vw;height:${size}vw;background:#fff;border-radius:50%;opacity:.7;filter:blur(1px);animation:starTwinkle ${dur}s infinite alternate;'></div>`;
+              }
+              starBg.innerHTML = stars;
+              const styleStar = document.createElement('style');
+              styleStar.innerHTML = `@keyframes starTwinkle{0%{opacity:.7;}100%{opacity:.2;}}`;
+              document.head.appendChild(styleStar);
+            }
+            konten.innerHTML = html;
+            // Konfeti saat podium muncul (berulang terus)
+            if (window.confetti) {
+              if (window.confettiIntervalPodium) clearInterval(window.confettiIntervalPodium);
+              window.confettiIntervalPodium = setInterval(()=>{
+                confetti({particleCount: 80, spread: 120, origin: {y:0.6}});
+              }, 700);
+            }
+            clearKontrolFloat();
+          });
       }
     }
 
@@ -893,6 +1027,39 @@ $id_soal_pertama = $soal_pertama ? $soal_pertama['id'] : '';
               }
             }, 1000);
           }
+        });
+      }
+      var btnGrafik = document.getElementById('btn-grafik-fixed');
+      if (btnGrafik) {
+        btnGrafik.addEventListener('click', function() {
+          var formData = new FormData();
+          formData.append('kontrol_presentasi', '1');
+          formData.append('aksi', 'ke_grafik');
+          fetch('host.php?kode=<?= htmlspecialchars($kode) ?>', {
+            method: 'POST',
+            body: formData
+          }).then(function() {
+            if (typeof pollStatusSekali === 'function') {
+              pollStatusSekali();
+            }
+          });
+        });
+      }
+      var btnPodium = document.getElementById('btn-podium-fixed');
+      if (btnPodium) {
+        btnPodium.addEventListener('click', function() {
+          // Contoh: fetch ke backend untuk mode podium, atau tampilkan overlay pemenang
+          var formData = new FormData();
+          formData.append('kontrol_presentasi', '1');
+          formData.append('aksi', 'podium');
+          fetch('host.php?kode=<?= htmlspecialchars($kode) ?>', {
+            method: 'POST',
+            body: formData
+          }).then(function() {
+            if (typeof pollStatusSekali === 'function') {
+              pollStatusSekali();
+            }
+          });
         });
       }
     });
