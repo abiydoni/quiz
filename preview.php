@@ -764,6 +764,20 @@ $id_soal_pertama = $soal_pertama ? $soal_pertama['id'] : '';
               document.head.appendChild(styleStar);
             }
             konten.innerHTML = html;
+            // Event tombol selesai
+            setTimeout(()=>{
+              const btnSelesai = document.getElementById('btn-podium-selesai');
+              if (btnSelesai) {
+                btnSelesai.onclick = function() {
+                  window.close();
+                  setTimeout(function() {
+                    if (!window.closed && document.hasFocus()) {
+                      window.location.href = 'index.php';
+                    }
+                  }, 500);
+                };
+              }
+            }, 100);
             // Konfeti saat podium muncul (berulang terus)
             if (window.confetti) {
               if (window.confettiIntervalPodium) clearInterval(window.confettiIntervalPodium);
