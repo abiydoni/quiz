@@ -504,7 +504,7 @@ $id_soal_pertama = $soal_pertama ? $soal_pertama['id'] : '';
           // Efek khusus hanya untuk jawaban benar dan hanya saat animasi awal
           let efekBenar = '';
           if (isBenar) {
-            efekBenar = ' animate-pulse-smooth ring-8 ring-green-400 shadow-2xl';
+            efekBenar = ' animate-float-glow ring-8 ring-green-400 shadow-2xl';
           } else {
             efekBenar = ' opacity-60';
           }
@@ -731,9 +731,9 @@ $id_soal_pertama = $soal_pertama ? $soal_pertama['id'] : '';
       }
     }
 
-    // Animasi smooth pulse untuk jawaban benar
+    // Animasi kombinasi floating + glowing untuk jawaban benar
     const style = document.createElement('style');
-    style.innerHTML = `@keyframes pulse-smooth {0%{transform:scale(1.08);box-shadow:0 0 0 0 #22c55e55;}50%{transform:scale(1.15);box-shadow:0 0 32px 8px #22c55e88;}100%{transform:scale(1.08);box-shadow:0 0 0 0 #22c55e55;}}.animate-pulse-smooth{animation:pulse-smooth 1.2s cubic-bezier(.4,2,.6,1) infinite;}`;
+    style.innerHTML = `@keyframes float-glow {0%{transform:translateY(0);box-shadow:0 0 12px 2px #22c55e44;}20%{transform:translateY(-6px);box-shadow:0 0 24px 8px #22c55e66;}50%{transform:translateY(-14px);box-shadow:0 0 32px 14px #22c55e88;}80%{transform:translateY(-6px);box-shadow:0 0 24px 8px #22c55e66;}100%{transform:translateY(0);box-shadow:0 0 12px 2px #22c55e44;}}.animate-float-glow{animation:float-glow 4s linear infinite;}`;
     document.head.appendChild(style);
 
     pollingStatus();
