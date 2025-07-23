@@ -108,11 +108,7 @@ $nama_peserta = $peserta ? $peserta['nama'] : '';
       const res = await fetch(`api/quiz.php?action=status_presentasi&kode=<?= $kode_quiz ?>`);
       const text = await res.text();
       if (!text || text.trim() === '{}' || text.trim() === '[]') {
-        document.getElementById('waiting-container').style.display = '';
-        document.getElementById('main-card').style.display = 'none';
-        document.getElementById('opsi-jawaban').style.display = 'none';
-        document.getElementById('soal').innerText = 'Menunggu quiz dimulai...';
-        setTimeout(ambilSoal, 2000);
+        window.location.href = 'join.php';
         return;
       }
       let data;
