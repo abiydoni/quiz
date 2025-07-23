@@ -36,7 +36,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['kontrol_presentasi'])
         // Set status ke waiting (lobby)
         $stmt = $pdo->prepare("INSERT INTO tb_status_quiz (id_quiz, id_soal, waktu_mulai, mode) VALUES (?, NULL, NOW(), 'waiting')");
         $stmt->execute([$quiz['id']]);
-        file_put_contents('debug.txt', 'POST: '.json_encode($_POST).PHP_EOL, FILE_APPEND);
+        // HAPUS kode otomatis mulai soal pertama
         header("Location: host.php?kode=$kode");
         exit;
     } elseif ($aksi === 'tampilkan_soal' && $id_soal) {
@@ -209,6 +209,48 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['kontrol_presentasi'])
       });
       return false;
     }
+  </script>
+  <script>
+document.addEventListener('DOMContentLoaded', function() {
+  var btnMulai = document.querySelector('button[name="mulai_quiz"]');
+  if (btnMulai) {
+    btnMulai.addEventListener('click', function(e) {
+      var kode = document.querySelector('input[name="kode"]');
+      var quizKode = kode ? kode.value : '';
+      var url = 'preview.php?kode=' + encodeURIComponent(quizKode);
+      var win = window.open(url, '_blank');
+      if (win) {
+        win.focus();
+        // Coba minta fullscreen (tidak semua browser mengizinkan)
+        win.onload = function() {
+          if (win.document.documentElement.requestFullscreen) {
+            win.document.documentElement.requestFullscreen();
+          }
+        };
+      }
+    });
+  }
+});
+</script>
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      var btnTampilLayar = document.querySelector('a[href^="preview.php"]');
+      if (btnTampilLayar) {
+        btnTampilLayar.addEventListener('click', function(e) {
+          e.preventDefault();
+          var url = btnTampilLayar.getAttribute('href');
+          var win = window.open(url, '_blank');
+          if (win) {
+            win.focus();
+            win.onload = function() {
+              if (win.document.documentElement.requestFullscreen) {
+                win.document.documentElement.requestFullscreen();
+              }
+            };
+          }
+        });
+      }
+    });
   </script>
 </body>
 </html> 

@@ -155,6 +155,38 @@ $id_soal_pertama = $soal_pertama ? $soal_pertama['id'] : '';
         max-height: 98vh;
       }
     }
+    @keyframes jawabanBenarPop {
+      0% { opacity: 0; transform: scale(0.7); box-shadow: 0 0 0 0 #22c55e44; }
+      60% { opacity: 1; transform: scale(1.08); box-shadow: 0 0 24px 8px #22c55e88; }
+      80% { transform: scale(0.97); box-shadow: 0 0 16px 4px #22c55e66; }
+      100% { opacity: 1; transform: scale(1); box-shadow: 0 0 12px 2px #22c55e44; }
+    }
+    @keyframes jawabanBenarGlow {
+      0%,100% { box-shadow: 0 0 12px 2px #22c55e44; }
+      50% { box-shadow: 0 0 32px 14px #22c55e88; }
+    }
+    .jawaban-benar-anim {
+      border-radius: 1rem;
+      border: 4px solid #22c55e;
+      position: relative;
+      z-index: 2;
+      backdrop-filter: blur(2px);
+      overflow: hidden;
+      background: #22c55e !important;
+    }
+    .jawaban-benar-anim::before {
+      content: '';
+      position: absolute;
+      top: 0; left: -60%;
+      width: 60%; height: 100%;
+      background: linear-gradient(120deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.5) 60%, rgba(255,255,255,0) 100%);
+      animation: shimmerLight 2.2s infinite;
+      pointer-events: none;
+    }
+    @keyframes shimmerLight {
+      0% { left: -60%; }
+      100% { left: 110%; }
+    }
   </style>
 </head>
 <body class="min-h-screen min-w-screen flex items-center justify-center" style="background:url('assets/img/bg.jpg') center center/cover no-repeat fixed;">
@@ -484,6 +516,17 @@ $id_soal_pertama = $soal_pertama ? $soal_pertama['id'] : '';
     }
 
     function renderPresentasi(data, withAnim = true) {
+      // Universal flag agar efek animasi awal hanya muncul sekali per mode/slade
+      if (!window.effectShown) window.effectShown = {};
+      if (window.lastEffectMode !== data.mode) {
+        window.effectShown[data.mode] = false;
+        window.lastEffectMode = data.mode;
+      }
+      // Hentikan confetti podium jika bukan mode podium
+      if (window.confettiIntervalPodium && data.mode !== 'podium') {
+        clearInterval(window.confettiIntervalPodium);
+        window.confettiIntervalPodium = null;
+      }
       const konten = document.getElementById('konten-presentasi');
       let html = '';
       let tombolKontrol = '';
@@ -635,7 +678,7 @@ $id_soal_pertama = $soal_pertama ? $soal_pertama['id'] : '';
           } else {
             efekBenar = ' opacity-60';
           }
-          html += `<div class='${warna[i]} bg-opacity-100 text-white rounded-2xl p-6 text-xl font-bold flex items-center shadow-xl transition-all select-none${efekBenar}'>${ikon[i]}${teks} ${isBenar ? "<i class='fa-solid fa-check ml-2'></i>" : ''}</div>`;
+          html += `<div class='${isBenar ? 'jawaban-benar-anim' : warna[i]} text-white rounded-2xl p-6 text-xl font-bold flex items-center shadow-xl transition-all select-none${efekBenar}' style='${isBenar ? 'background:#22c55e !important;' : ''}'>${ikon[i]}${teks} ${isBenar ? "<i class='fa-solid fa-check ml-2'></i>" : ''}</div>`;
         });
         html += `</div>`;
         konten.innerHTML = html;
@@ -657,6 +700,10 @@ $id_soal_pertama = $soal_pertama ? $soal_pertama['id'] : '';
         konten.innerHTML = html;
         renderStatistikJawaban();
         clearKontrolFloat();
+        if (!window.effectShown['grafik']) {
+          // Jalankan efek animasi grafik di sini jika ada (misal confetti, dsb)
+          window.effectShown['grafik'] = true;
+        }
       } else if (mode === 'ranking') {
         lastSoalId = null;
         // Leaderboard
@@ -672,8 +719,16 @@ $id_soal_pertama = $soal_pertama ? $soal_pertama['id'] : '';
         konten.innerHTML = html;
         renderLeaderboard();
         if (tombolKontrol) renderKontrolFloat(tombolKontrol); else clearKontrolFloat();
+        if (!window.effectShown['ranking']) {
+          // Jalankan efek animasi ranking di sini jika ada (misal confetti, dsb)
+          window.effectShown['ranking'] = true;
+        }
       } else if (mode === 'podium') {
         lastSoalId = null;
+        if (!window.effectShown['podium']) {
+          // Jalankan efek animasi podium di sini jika ada (misal confetti, animasi podium, dsb)
+          // Flag akan di-set di dalam callback fetch leaderboard setelah confetti dijalankan
+        }
         // Ambil leaderboard 3 besar
         fetch('api/leaderboard.php?kode=<?= $kode ?>')
           .then(res => res.json())
@@ -778,15 +833,20 @@ $id_soal_pertama = $soal_pertama ? $soal_pertama['id'] : '';
                 };
               }
             }, 100);
-            // Konfeti saat podium muncul (berulang terus)
-            if (window.confetti) {
+            // Konfeti saat podium muncul (berulang terus, hanya sekali per masuk podium)
+            if (window.confetti && !window.effectShown['podium']) {
               if (window.confettiIntervalPodium) clearInterval(window.confettiIntervalPodium);
               window.confettiIntervalPodium = setInterval(()=>{
                 confetti({particleCount: 80, spread: 120, origin: {y:0.6}});
               }, 700);
+              window.effectShown['podium'] = true;
             }
             clearKontrolFloat();
           });
+      }
+      // Reset flag efek grafik jika keluar dari mode grafik
+      if (mode !== 'grafik' && window.effectShown) {
+        window.effectShown['grafik'] = false; 
       }
     }
 
@@ -853,8 +913,11 @@ $id_soal_pertama = $soal_pertama ? $soal_pertama['id'] : '';
         html += `<div class='${warna[i]} text-white rounded-2xl px-8 py-6 text-xl font-bold flex items-center shadow-xl transition-all select-none min-w-[120px] justify-center statistik-anim' style='animation-delay:${i*0.12}s'>${ikon[i]}<span class='text-2xl font-extrabold ml-2'>${data[h] || 0}</span></div>`;
       });
       el.innerHTML = html;
-      // confetti saat statistik muncul
-      if (window.confetti) setTimeout(()=>{ confetti({particleCount: 120, spread: 90, origin: {y:0.6}}); }, 400);
+      // confetti saat statistik muncul, hanya sekali per masuk mode grafik
+      if (window.confetti && !window.effectShown['grafik']) {
+        setTimeout(()=>{ confetti({particleCount: 120, spread: 90, origin: {y:0.6}}); }, 400);
+        window.effectShown['grafik'] = true;
+      }
     }
 
     async function renderLeaderboard() {
@@ -1010,7 +1073,8 @@ $id_soal_pertama = $soal_pertama ? $soal_pertama['id'] : '';
       }
       var btnNext = document.getElementById('btn-next-fixed');
       if (btnNext) {
-        btnNext.addEventListener('click', function() {
+        btnNext.onclick = function(e) {
+          e.preventDefault();
           var overlay = document.getElementById('countdown-overlay');
           var number = document.getElementById('countdown-number');
           if (overlay && number) {
@@ -1041,7 +1105,7 @@ $id_soal_pertama = $soal_pertama ? $soal_pertama['id'] : '';
               }
             }, 1000);
           }
-        });
+        }
       }
       var btnGrafik = document.getElementById('btn-grafik-fixed');
       if (btnGrafik) {

@@ -16,6 +16,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     } elseif (empty($nama)) {
         $error = "Nama tidak boleh kosong.";
     } else {
+        // Cek nama sudah digunakan di quiz ini?
+        $stmt = $pdo->prepare("SELECT COUNT(*) FROM tb_peserta WHERE id_quiz = ? AND nama = ?");
+        $stmt->execute([$quiz['id'], $nama]);
+        if ($stmt->fetchColumn() > 0) {
+            $error = "Nama sudah digunakan oleh peserta lain pada quiz ini. Silakan pilih nama lain.";
+        } else {
         // Masukkan peserta ke tb_peserta
         $stmt = $pdo->prepare("INSERT INTO tb_peserta (id_quiz, nama) VALUES (?, ?)");
         $stmt->execute([$quiz['id'], $nama]);
@@ -29,6 +35,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         // Redirect ke play.php
         header("Location: play.php");
         exit;
+        }
     }
 }
 ?>
