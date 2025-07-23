@@ -30,16 +30,32 @@ $nama_peserta = $peserta ? $peserta['nama'] : '';
     @keyframes pulse { 0% { color: #f59e42; } 50% { color: #ef4444; } 100% { color: #f59e42; } }
   </style>
 </head>
-<body class="bg-gradient-to-br from-purple-100 to-blue-200 min-h-screen flex items-center justify-center">
-  <div class="w-full max-w-xl bg-white/80 p-4 sm:p-8 rounded-3xl shadow-2xl fade-in text-center backdrop-blur-md animate-fadein-card">
-    <h2 class="text-lg sm:text-xl font-semibold mb-2 animate-fadein-top">Selamat datang, <span class="text-indigo-700 font-bold"><?= htmlspecialchars($nama_peserta) ?></span></h2>
-    <div id="soal-info" class="text-xs sm:text-sm font-semibold text-gray-500 mb-2 animate-fadein-top"></div>
-    <h1 id="soal" class="text-xl sm:text-2xl font-bold text-purple-700 mb-6 animate-fadein-top">Menunggu soal...</h1>
-    <div class="text-lg font-semibold text-red-600 mb-4 animate-pulse-timer">
+<body class="bg-black min-h-screen flex items-center justify-center">
+  <!-- Card menunggu soal -->
+  <div id="waiting-container" class="flex flex-col items-center justify-center min-h-screen w-full">
+    <div class="mb-6 text-2xl sm:text-3xl font-bold text-white drop-shadow animate-fadein-top">Selamat datang, <span class="text-indigo-400"><?= htmlspecialchars($nama_peserta) ?></span>!</div>
+    <div class="bg-black/80 backdrop-blur-lg rounded-3xl shadow-2xl p-10 flex flex-col items-center border border-gray-800 max-w-md w-full animate-fadein-card">
+      <div class="mb-8 animate-pulse">
+        <i class="fa-solid fa-hourglass-half text-7xl text-indigo-400 drop-shadow"></i>
+      </div>
+      <h1 class="text-3xl sm:text-4xl font-extrabold text-white mb-3 animate-fadein-top tracking-wide drop-shadow-lg">Menunggu Soal...</h1>
+      <div class="text-lg text-gray-200 mb-6 animate-fadein-top text-center max-w-md">Quiz akan segera dimulai.<br>Perhatikan layar proyektor dan tunggu host menampilkan soal.</div>
+      <div class="flex gap-2 mt-2 animate-fadein-top">
+        <span class="w-3 h-3 bg-indigo-400 rounded-full animate-bounce"></span>
+        <span class="w-3 h-3 bg-indigo-500 rounded-full animate-bounce delay-150"></span>
+        <span class="w-3 h-3 bg-indigo-600 rounded-full animate-bounce delay-300"></span>
+      </div>
+    </div>
+  </div>
+  <!-- Card utama quiz -->
+  <div id="main-card" style="display:none; background:rgba(0,0,0,0.92);" class="w-full max-w-xl p-4 sm:p-8 rounded-3xl shadow-2xl fade-in text-center backdrop-blur-md animate-fadein-card border border-gray-800">
+    <div id="soal-info" class="text-lg sm:text-xl font-bold text-indigo-300 mb-4 animate-fadein-top"></div>
+    <h1 id="soal" class="text-xl sm:text-2xl font-bold text-white mb-6 animate-fadein-top"></h1>
+    <div class="text-lg font-semibold text-orange-400 mb-4 animate-pulse-timer">
       <i class="fa-solid fa-hourglass-half animate-spin"></i>
       <span id="timer" class="timer-anim">--</span> detik
     </div>
-    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4" id="opsi-jawaban">
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4" id="opsi-jawaban" style="display:none;">
       <?php
         $warna = [
           'A' => 'from-red-500 to-pink-400',
@@ -92,8 +108,10 @@ $nama_peserta = $peserta ? $peserta['nama'] : '';
       const res = await fetch(`api/quiz.php?action=status_presentasi&kode=<?= $kode_quiz ?>`);
       const text = await res.text();
       if (!text || text.trim() === '{}' || text.trim() === '[]') {
-        document.getElementById('soal').innerText = 'Menunggu quiz dimulai...';
+        document.getElementById('waiting-container').style.display = '';
+        document.getElementById('main-card').style.display = 'none';
         document.getElementById('opsi-jawaban').style.display = 'none';
+        document.getElementById('soal').innerText = 'Menunggu quiz dimulai...';
         setTimeout(ambilSoal, 2000);
         return;
       }
@@ -101,11 +119,55 @@ $nama_peserta = $peserta ? $peserta['nama'] : '';
       try {
         data = JSON.parse(text);
       } catch (e) {
-        document.getElementById('soal').innerText = 'Terjadi error pada server.';
+        document.getElementById('waiting-container').style.display = '';
+        document.getElementById('main-card').style.display = 'none';
         document.getElementById('opsi-jawaban').style.display = 'none';
+        document.getElementById('soal').innerText = 'Terjadi error pada server.';
         setTimeout(ambilSoal, 2000);
         return;
       }
+      // Pengecekan mode waiting PALING ATAS
+      if (data && (data.mode === 'waiting' || data.mode === 'grafik')) {
+        var waitingEl = document.getElementById('waiting-container');
+        var mainCardEl = document.getElementById('main-card');
+        var opsiJawabanEl = document.getElementById('opsi-jawaban');
+        // Tampilkan waiting-container
+        if (waitingEl) waitingEl.style.display = '';
+        // Sembunyikan main-card
+        if (mainCardEl) {
+          mainCardEl.style.display = 'none';
+          if (window.mainCardDefaultHTML) mainCardEl.innerHTML = window.mainCardDefaultHTML;
+          initMainCard();
+        }
+        if (opsiJawabanEl) opsiJawabanEl.style.display = 'none';
+        // Hapus slade jika ada
+        var slade = document.getElementById('slade-jawaban');
+        if (slade) slade.remove();
+        console.log('Mode:', data.mode, 'waiting-container:', waitingEl?.style.display, 'main-card:', mainCardEl?.style.display);
+        setTimeout(ambilSoal, 2000);
+        lastMode = data.mode;
+        return;
+      }
+      // Pastikan saat mode bukan waiting, waiting-container di-hide dan main-card di-show
+      if (data && data.mode !== 'waiting' && data.mode !== 'grafik') {
+        var waitingEl = document.getElementById('waiting-container');
+        var mainCardEl = document.getElementById('main-card');
+        var opsiJawabanEl = document.getElementById('opsi-jawaban');
+        if (waitingEl) waitingEl.style.display = 'none';
+        if (mainCardEl) mainCardEl.style.display = '';
+        if (opsiJawabanEl) opsiJawabanEl.style.display = '';
+      }
+      // Di awal polling ambilSoal()
+      if (typeof window.countdownSudahJalan === 'undefined') window.countdownSudahJalan = false;
+      // Pada JS, saat mode soal, langsung tampilkan card jawaban tanpa countdown
+      if (data && data.mode === 'soal') {
+        // polling tetap lanjut, JANGAN return
+      }
+      // Reset flag jika mode bukan soal
+      if (data && data.mode !== 'soal') {
+        window.countdownSudahJalan = false;
+      }
+      // baru setelah ini boleh cek id_soal dan panggil tampilkanSoal()
       let soalBaru = false;
       if (data && data.id_soal && data.id_soal != lastSoalId) {
         soalAktif = data.id_soal;
@@ -118,28 +180,22 @@ $nama_peserta = $peserta ? $peserta['nama'] : '';
         tampilkanSoal(data, false); // update tampilan, jangan reset timer
       }
       // Cek mode presentasi
-      if (data && data.mode === 'waiting') {
-        document.getElementById('soal').innerText = 'Menunggu soal...';
-        document.getElementById('soal-info').innerText = '';
-        document.getElementById('timer').innerText = '--';
-        ['A', 'B', 'C', 'D'].forEach(h => {
-          document.getElementById('opsi_' + h).innerText = '';
-          document.getElementById('btn_' + h).disabled = true;
-        });
-        document.getElementById('opsi-jawaban').style.display = 'none';
-        setTimeout(ambilSoal, 2000);
-        lastMode = data.mode;
-        return;
-      }
       if (data && data.mode === 'jawaban' && lastMode !== 'jawaban') {
         tampilkanSladeJawaban(data.jawaban_benar);
       }
       lastMode = data && data.mode ? data.mode : '';
-      document.getElementById('opsi-jawaban').style.display = '';
+      if (data && data.mode !== 'waiting' && data.mode !== 'grafik') {
+        var opsiJawabanEl = document.getElementById('opsi-jawaban');
+        if (opsiJawabanEl) opsiJawabanEl.style.display = '';
+      }
       setTimeout(ambilSoal, 2000); // polling setiap 2 detik
     }
 
     function tampilkanSoal(data, resetTimer = false) {
+      // Jangan tampilkan card jawaban jika mode waiting
+      if (lastMode === 'waiting' || data.mode === 'waiting' || data.mode === 'grafik') {
+        return;
+      }
       // Tampilkan info jumlah soal
       const soalInfo = document.getElementById('soal-info');
       if (soalInfo && data.current_index && data.total_soal) {
@@ -148,10 +204,12 @@ $nama_peserta = $peserta ? $peserta['nama'] : '';
         soalInfo.innerText = '';
       }
       const soalDiv = document.getElementById('soal');
-      soalDiv.innerHTML = `${data.gambar ? `<img src='assets/soal/${data.gambar}' alt='Gambar Soal' class='mb-4 max-h-64 rounded-lg mx-auto shadow'>` : ''}<div>${data.soal}</div>`;
+      // soalDiv.innerHTML = `${data.gambar ? `<img src='assets/soal/${data.gambar}' alt='Gambar Soal' class='mb-4 max-h-64 rounded-lg mx-auto shadow'>` : ''}<div>${data.soal}</div>`;
       ['A', 'B', 'C', 'D'].forEach(h => {
-        document.getElementById('opsi_' + h).innerText = data['jawaban_' + h.toLowerCase()];
-        document.getElementById('btn_' + h).disabled = false;
+        const opsi = document.getElementById('opsi_' + h);
+        const btn = document.getElementById('btn_' + h);
+        if (opsi) opsi.innerText = data['jawaban_' + h.toLowerCase()];
+        if (btn) btn.disabled = false;
       });
       // Cek timer di elemen, jika > 0, set waktuHabis = false
       const elemenTimer = document.getElementById('timer');
@@ -162,7 +220,8 @@ $nama_peserta = $peserta ? $peserta['nama'] : '';
       const now = Date.now();
       let sisa = data.durasi - Math.floor((now - mulai) / 1000);
       if (sisa < 0) sisa = 0;
-      document.getElementById('timer').innerText = sisa; // update timer di elemen setiap polling
+      const timerEl = document.getElementById('timer');
+      if (timerEl) timerEl.innerText = sisa; // update timer di elemen setiap polling
       if (resetTimer) {
         clearInterval(timerInterval);
         waktuHabis = false;
@@ -179,7 +238,7 @@ $nama_peserta = $peserta ? $peserta['nama'] : '';
         const now = Date.now();
         const sisa = durasi - Math.floor((now - waktuMulai) / 1000);
         const elemenTimer = document.getElementById('timer');
-        elemenTimer.innerText = sisa > 0 ? sisa : 0;
+        if (elemenTimer) elemenTimer.innerText = sisa > 0 ? sisa : 0;
         if (sisa <= 0) {
           clearInterval(timerInterval);
           waktuHabis = true;
@@ -189,10 +248,16 @@ $nama_peserta = $peserta ? $peserta['nama'] : '';
     }
 
     function disableSemuaTombol() {
-      ['A', 'B', 'C', 'D'].forEach(h => document.getElementById('btn_' + h).disabled = true);
+      ['A', 'B', 'C', 'D'].forEach(h => {
+        const btn = document.getElementById('btn_' + h);
+        if (btn) btn.disabled = true;
+      });
     }
     function enableSemuaTombol() {
-      ['A', 'B', 'C', 'D'].forEach(h => document.getElementById('btn_' + h).disabled = false);
+      ['A', 'B', 'C', 'D'].forEach(h => {
+        const btn = document.getElementById('btn_' + h);
+        if (btn) btn.disabled = false;
+      });
     }
 
     async function kirimJawaban(pilihan) {
@@ -231,27 +296,63 @@ $nama_peserta = $peserta ? $peserta['nama'] : '';
     }
 
     async function tampilkanSladeJawaban(jawabanBenar) {
+      // Sembunyikan card jawaban
+      const opsiJawaban = document.getElementById('opsi-jawaban');
+      if (opsiJawaban) opsiJawaban.style.display = 'none';
+      // Ganti isi main-card dengan slade jawaban
+      const mainCard = document.getElementById('main-card');
+      if (!mainCard) return;
       // Ambil jawaban terakhir peserta untuk soal ini
       const res = await fetch(`api/jawaban_peserta.php?id_peserta=<?= $id_peserta ?>&id_soal=${soalAktif}`);
       const data = await res.json();
-      let html = '<div class="fixed inset-0 bg-black/40 flex items-center justify-center z-50">';
-      html += '<div class="bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full text-center animate-fadein-card">';
+      let html = '<div class="flex flex-col items-center justify-center min-h-[300px]">';
       if (data.benar == 1) {
-        html += '<div class="text-3xl font-bold text-green-600 mb-2">Selamat! Jawaban Anda BENAR</div>';
-        html += `<div class="text-lg mb-4">Jawaban yang kamu pilih: <b>${data.jawaban}</b></div>`;
+        html += '<i class="fa-solid fa-circle-check text-6xl text-green-400 drop-shadow animate-shimmer mb-4"></i>';
+        html += '<div class="text-3xl font-bold text-green-300 mb-2 animate-fadein-top">Selamat! Jawaban Anda BENAR</div>';
+        html += `<div class="text-lg mb-4 animate-fadein-top text-gray-100">Jawaban yang kamu pilih: <b class='px-2 py-1 rounded bg-green-900 text-green-200 animate-shimmer'>${data.jawaban}</b></div>`;
       } else {
-        html += '<div class="text-3xl font-bold text-red-600 mb-2">Jawaban Anda SALAH</div>';
-        html += `<div class="text-lg mb-2">Jawaban yang kamu pilih: <b>${data.jawaban}</b></div>`;
-        html += `<div class="text-lg mb-4">Jawaban yang benar: <b>${jawabanBenar}</b></div>`;
+        html += '<i class="fa-solid fa-circle-xmark text-6xl text-red-400 drop-shadow animate-fadein-top mb-4"></i>';
+        html += '<div class="text-3xl font-bold text-red-300 mb-2 animate-fadein-top">Jawaban Anda SALAH</div>';
+        html += `<div class="text-lg mb-2 animate-fadein-top text-gray-100">Jawaban yang kamu pilih: <b class='px-2 py-1 rounded bg-red-900 text-red-200'>${data.jawaban}</b></div>`;
+        html += `<div class="text-lg mb-4 animate-fadein-top text-gray-100">Jawaban yang benar: <b class='px-2 py-1 rounded bg-green-900 text-green-200 animate-shimmer'>${jawabanBenar}</b></div>`;
       }
-      html += '<button onclick="document.getElementById(\'slade-jawaban\').remove()" class="mt-4 px-6 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-bold shadow">Tutup</button>';
-      html += '</div></div>';
-      let el = document.createElement('div');
-      el.id = 'slade-jawaban';
-      el.innerHTML = html;
-      document.body.appendChild(el);
+      html += '</div>';
+      mainCard.innerHTML = html;
+      // Slade hilang otomatis setelah 2 detik
+      setTimeout(() => { ambilSoal(); }, 2000);
     }
-    window.onload = ambilSoal;
+
+    function tutupSladeJawaban() {
+      // Kembalikan tampilan main-card ke mode normal jika masih mode soal
+      ambilSoal(); // polling ulang, akan render ulang main-card dan opsi jawaban jika mode soal
+    }
+    // Tambahkan animasi shimmer
+    const shimmerStyle = document.createElement('style');
+    shimmerStyle.innerHTML = `
+    @keyframes shimmer {
+      0% { box-shadow: 0 0 0 0 #a7f3d0; }
+      50% { box-shadow: 0 0 24px 6px #6ee7b7; }
+      100% { box-shadow: 0 0 0 0 #a7f3d0; }
+    }
+    .animate-shimmer { animation: shimmer 1.2s infinite; }
+    `;
+    document.head.appendChild(shimmerStyle);
+
+    function initMainCard() {
+      // Re-attach event handler tombol jawaban
+      ['A', 'B', 'C', 'D'].forEach(h => {
+        const btn = document.getElementById('btn_' + h);
+        if (btn) btn.onclick = function() { kirimJawaban(h); };
+      });
+    }
+
+    window.onload = function() {
+      // Simpan isi awal main-card
+      var mainCard = document.getElementById('main-card');
+      if (mainCard) window.mainCardDefaultHTML = mainCard.innerHTML;
+      initMainCard();
+      ambilSoal();
+    }
   </script>
 </body>
 </html> 

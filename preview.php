@@ -187,6 +187,23 @@ $id_soal_pertama = $soal_pertama ? $soal_pertama['id'] : '';
       0% { left: -60%; }
       100% { left: 110%; }
     }
+    .jawaban-benar-shimmer {
+      position: relative;
+      overflow: hidden;
+    }
+    .jawaban-benar-shimmer::before {
+      content: '';
+      position: absolute;
+      top: 0; left: -60%;
+      width: 60%; height: 100%;
+      background: linear-gradient(120deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.5) 60%, rgba(255,255,255,0) 100%);
+      animation: shimmerLight 2.2s infinite;
+      pointer-events: none;
+    }
+    @keyframes shimmerLight {
+      0% { left: -60%; }
+      100% { left: 110%; }
+    }
   </style>
 </head>
 <body class="min-h-screen min-w-screen flex items-center justify-center" style="background:url('assets/img/bg.jpg') center center/cover no-repeat fixed;">
@@ -678,7 +695,8 @@ $id_soal_pertama = $soal_pertama ? $soal_pertama['id'] : '';
           } else {
             efekBenar = ' opacity-60';
           }
-          html += `<div class='${isBenar ? 'jawaban-benar-anim' : warna[i]} text-white rounded-2xl p-6 text-xl font-bold flex items-center shadow-xl transition-all select-none${efekBenar}' style='${isBenar ? 'background:#22c55e !important;' : ''}'>${ikon[i]}${teks} ${isBenar ? "<i class='fa-solid fa-check ml-2'></i>" : ''}</div>`;
+          // Gunakan warna card normal untuk jawaban benar + shimmer
+          html += `<div class='${warna[i]} text-white rounded-2xl p-6 text-xl font-bold flex items-center shadow-xl transition-all select-none${efekBenar} ${isBenar ? 'jawaban-benar-shimmer' : ''}'>${ikon[i]}${teks} ${isBenar ? "<i class='fa-solid fa-check ml-2'></i>" : ''}</div>`;
         });
         html += `</div>`;
         konten.innerHTML = html;
