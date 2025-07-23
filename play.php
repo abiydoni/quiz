@@ -126,13 +126,55 @@ $nama_peserta = $peserta ? $peserta['nama'] : '';
         setTimeout(ambilSoal, 2000);
         return;
       }
+      // Pindahkan pengecekan quiz selesai ke atas, tapi hanya tampilkan slade terima kasih jika mode 'podium' dan current_index > total_soal
+      if (data && data.mode === 'podium') {
+        var waitingEl = document.getElementById('waiting-container');
+        var mainCardEl = document.getElementById('main-card');
+        var opsiJawabanEl = document.getElementById('opsi-jawaban');
+        if (waitingEl) {
+          waitingEl.style.display = '';
+          if (window.lastWaitingType !== 'terimakasih') {
+            waitingEl.innerHTML = `
+              <div class="flex flex-col items-center justify-center min-h-screen w-full">
+                <div class="mb-6 text-3xl sm:text-4xl font-bold text-white drop-shadow animate-fadein-top">Terima Kasih!</div>
+                <div class="bg-black/80 backdrop-blur-lg rounded-3xl shadow-2xl p-10 flex flex-col items-center border border-gray-800 max-w-md w-full animate-fadein-card">
+                  <div class="mb-8 animate-pulse">
+                    <i class="fa-solid fa-trophy text-7xl text-yellow-400 drop-shadow"></i>
+                  </div>
+                  <h1 class="text-2xl sm:text-3xl font-extrabold text-white mb-3 animate-fadein-top tracking-wide drop-shadow-lg">Quiz telah selesai.<br>Terima kasih sudah mengikuti quiz ini!</h1>
+                  <div class="text-lg text-gray-200 mb-6 animate-fadein-top text-center max-w-md">Selamat kepada para juara!<br>Jangan lupa tetap semangat belajar dan sampai jumpa di quiz berikutnya.</div>
+                </div>
+              </div>
+            `;
+            window.lastWaitingType = 'terimakasih';
+          }
+        }
+        if (mainCardEl) {
+          mainCardEl.style.display = 'none';
+          if (window.mainCardDefaultHTML) mainCardEl.innerHTML = window.mainCardDefaultHTML;
+          initMainCard();
+        }
+        if (opsiJawabanEl) opsiJawabanEl.style.display = 'none';
+        var slade = document.getElementById('slade-jawaban');
+        if (slade) slade.remove();
+        setTimeout(ambilSoal, 2000);
+        lastMode = data.mode;
+        return;
+      }
       // Pengecekan mode waiting PALING ATAS
-      if (data && (data.mode === 'waiting' || data.mode === 'grafik')) {
+      if (data && (data.mode === 'waiting' || data.mode === 'grafik' || data.mode === 'ranking' || data.mode === 'podium')) {
         var waitingEl = document.getElementById('waiting-container');
         var mainCardEl = document.getElementById('main-card');
         var opsiJawabanEl = document.getElementById('opsi-jawaban');
         // Tampilkan waiting-container
-        if (waitingEl) waitingEl.style.display = '';
+        if (waitingEl) {
+          waitingEl.style.display = '';
+          // Kembalikan isi default jika bukan akhir quiz
+          if (window.lastWaitingType !== 'default') {
+            if (window.waitingDefaultHTML) waitingEl.innerHTML = window.waitingDefaultHTML;
+            window.lastWaitingType = 'default';
+          }
+        }
         // Sembunyikan main-card
         if (mainCardEl) {
           mainCardEl.style.display = 'none';
@@ -149,7 +191,7 @@ $nama_peserta = $peserta ? $peserta['nama'] : '';
         return;
       }
       // Pastikan saat mode bukan waiting, waiting-container di-hide dan main-card di-show
-      if (data && data.mode !== 'waiting' && data.mode !== 'grafik') {
+      if (data && data.mode !== 'waiting' && data.mode !== 'grafik' && data.mode !== 'ranking') {
         var waitingEl = document.getElementById('waiting-container');
         var mainCardEl = document.getElementById('main-card');
         var opsiJawabanEl = document.getElementById('opsi-jawaban');
@@ -184,7 +226,7 @@ $nama_peserta = $peserta ? $peserta['nama'] : '';
         tampilkanSladeJawaban(data.jawaban_benar);
       }
       lastMode = data && data.mode ? data.mode : '';
-      if (data && data.mode !== 'waiting' && data.mode !== 'grafik') {
+      if (data && data.mode !== 'waiting' && data.mode !== 'grafik' && data.mode !== 'ranking') {
         var opsiJawabanEl = document.getElementById('opsi-jawaban');
         if (opsiJawabanEl) opsiJawabanEl.style.display = '';
       }
@@ -193,7 +235,7 @@ $nama_peserta = $peserta ? $peserta['nama'] : '';
 
     function tampilkanSoal(data, resetTimer = false) {
       // Jangan tampilkan card jawaban jika mode waiting
-      if (lastMode === 'waiting' || data.mode === 'waiting' || data.mode === 'grafik') {
+      if (lastMode === 'waiting' || data.mode === 'waiting' || data.mode === 'grafik' || data.mode === 'ranking') {
         return;
       }
       // Tampilkan info jumlah soal
@@ -350,6 +392,9 @@ $nama_peserta = $peserta ? $peserta['nama'] : '';
       // Simpan isi awal main-card
       var mainCard = document.getElementById('main-card');
       if (mainCard) window.mainCardDefaultHTML = mainCard.innerHTML;
+      var waiting = document.getElementById('waiting-container');
+      if (waiting) window.waitingDefaultHTML = waiting.innerHTML;
+      window.lastWaitingType = 'default';
       initMainCard();
       ambilSoal();
     }

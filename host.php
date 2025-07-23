@@ -33,6 +33,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['kontrol_presentasi'])
         // Hapus status quiz lama
         $stmt = $pdo->prepare("DELETE FROM tb_status_quiz WHERE id_quiz = ?");
         $stmt->execute([$quiz['id']]);
+        // Hapus semua data jawaban dan peserta untuk quiz ini
+        $stmt = $pdo->prepare("DELETE FROM tb_jawaban WHERE id_peserta IN (SELECT id FROM tb_peserta WHERE id_quiz = ?)");
+        $stmt->execute([$quiz['id']]);
+        $stmt = $pdo->prepare("DELETE FROM tb_peserta WHERE id_quiz = ?");
+        $stmt->execute([$quiz['id']]);
         // Set status ke waiting (lobby)
         $stmt = $pdo->prepare("INSERT INTO tb_status_quiz (id_quiz, id_soal, waktu_mulai, mode) VALUES (?, NULL, NOW(), 'waiting')");
         $stmt->execute([$quiz['id']]);
@@ -111,13 +116,31 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['kontrol_presentasi'])
       </a>
       <a href="index.php" class="text-orange-600 hover:underline ml-auto">&larr; Kembali ke Beranda</a>
     </div>
-    <form method="post" class="mb-4 flex justify-center">
+    <form id="form-mulai-quiz" method="post" class="mb-4 flex justify-center">
       <input type="hidden" name="kontrol_presentasi" value="1">
       <input type="hidden" name="aksi" value="mulai_quiz">
-      <button class="px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-lg font-bold shadow transition-all">
+      <button type="button" id="btn-mulai-quiz" class="px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-lg font-bold shadow transition-all">
         <i class="fa-solid fa-play"></i> Mulai Quiz (Lobby)
       </button>
     </form>
+    <script>
+document.getElementById('btn-mulai-quiz').onclick = function(e) {
+  Swal.fire({
+    title: 'Konfirmasi Mulai Quiz',
+    text: 'Semua data peserta dan jawaban akan dihapus. Apakah Anda yakin ingin memulai quiz dari awal?',
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonColor: '#3085d6',
+    cancelButtonColor: '#d33',
+    confirmButtonText: 'Ya, mulai quiz!',
+    cancelButtonText: 'Batal'
+  }).then((result) => {
+    if (result.isConfirmed) {
+      document.getElementById('form-mulai-quiz').submit();
+    }
+  });
+};
+</script>
     <div class="mb-6 flex justify-between items-center">
       <h2 class="text-xl font-bold text-orange-700 flex items-center gap-2"><i class="fa-solid fa-list-ol"></i> Daftar Soal</h2>
       <a href="tambah_soal.php?id_quiz=<?= $quiz['id'] ?>&kode=<?= htmlspecialchars($kode) ?>" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-semibold shadow transition-all flex items-center gap-2"><i class="fa-solid fa-plus"></i> Tambah Soal</a>
