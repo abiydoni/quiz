@@ -107,7 +107,6 @@ if ($host) {
                   <td class="p-2 text-gray-500"><?= date('d M Y H:i', strtotime($q['waktu_buat'])) ?></td>
                   <td class="p-2 flex gap-2">
                     <a href="host.php?kode=<?= htmlspecialchars($q['kode_quiz']) ?>" class="px-3 py-1 bg-orange-600 hover:bg-orange-700 text-white rounded-lg text-sm font-bold shadow transition-all" title="Kontrol Quiz"><i class="fa-solid fa-chalkboard-user"></i></a>
-                    <a href="leaderboard.php?kode=<?= htmlspecialchars($q['kode_quiz']) ?>" class="px-3 py-1 bg-green-600 hover:bg-green-700 text-white rounded-lg text-sm font-bold shadow transition-all" title="Leaderboard"><i class="fa-solid fa-trophy"></i></a>
                     <a href="#" onclick="return hapusQuiz(<?= $q['id'] ?>, '<?= addslashes($q['nama_quiz']) ?>')" class="px-3 py-1 bg-red-600 hover:bg-red-700 text-white rounded-lg text-sm font-bold shadow transition-all" title="Hapus Quiz"><i class="fa-solid fa-trash"></i></a>
                   </td>
                 </tr>

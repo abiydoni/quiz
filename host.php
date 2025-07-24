@@ -123,9 +123,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['kontrol_presentasi'])
       <span class="bg-orange-100 text-orange-700 px-4 py-2 rounded-lg font-mono text-lg shadow">
         Kode Quiz: <b><?= htmlspecialchars($kode) ?></b>
       </span>
-      <a href="leaderboard.php?kode=<?= htmlspecialchars($kode) ?>" class="inline-flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg font-semibold shadow transition-all">
-        <i class="fa-solid fa-trophy"></i> Leaderboard
-      </a>
       <form id="form-mulai-quiz" method="post" class="inline">
         <input type="hidden" name="kontrol_presentasi" value="1">
         <input type="hidden" name="aksi" value="mulai_quiz">
