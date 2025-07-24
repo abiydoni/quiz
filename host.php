@@ -276,6 +276,28 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['kontrol_presentasi'])
           }
         });
       }
+
+      // Konfirmasi SweetAlert untuk tombol Mulai Quiz
+      var btnMulai = document.getElementById('btn-mulai-quiz');
+      var formMulai = document.getElementById('form-mulai-quiz');
+      if (btnMulai && formMulai) {
+        btnMulai.addEventListener('click', function(e) {
+          e.preventDefault();
+          Swal.fire({
+            title: 'Mulai Quiz?',
+            text: 'Quiz akan dimulai dan semua peserta lama akan dihapus. Lanjutkan?',
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonColor: '#e11d48',
+            cancelButtonColor: '#d1d5db',
+            confirmButtonText: 'Ya, mulai!'
+          }).then((result) => {
+            if (result.isConfirmed) {
+              formMulai.submit();
+            }
+          });
+        });
+      }
     });
   </script>
 </body>

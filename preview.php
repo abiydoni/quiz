@@ -596,6 +596,19 @@ $id_soal_pertama = $soal_pertama ? $soal_pertama['id'] : '';
         const btnMulai = document.getElementById('btn-mulai-quiz');
         if (btnMulai) {
           btnMulai.addEventListener('click', function(e) {
+            // Cek jumlah peserta
+            const pesertaCounter = document.getElementById('peserta-counter');
+            const jumlahPeserta = pesertaCounter ? parseInt(pesertaCounter.textContent) : 0;
+            if (jumlahPeserta < 1) {
+              e.preventDefault();
+              Swal.fire({
+                icon: 'error',
+                title: 'Tidak ada peserta!',
+                text: 'Tidak bisa mulai quiz sebelum ada peserta yang join.',
+                confirmButtonColor: '#e11d48'
+              });
+              return false;
+            }
             e.preventDefault();
             // Ambil data form sebelum renderCountdown (karena form akan hilang)
             const form = document.getElementById('form-mulai-quiz');
