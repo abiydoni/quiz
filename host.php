@@ -133,7 +133,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['kontrol_presentasi'])
           <i class="fa-solid fa-play"></i> Mulai Quiz (Lobby)
         </button>
       </form>
-      <a href="preview.php?kode=<?= htmlspecialchars($kode) ?>" target="_blank" class="inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-semibold shadow transition-all">
+      <a href="preview.php?kode=<?= htmlspecialchars($kode) ?>" target="_blank" id="btn-tampil-layar" class="inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-semibold shadow transition-all">
         <i class="fa-solid fa-desktop"></i> Tampilkan di Layar
       </a>
       <a href="index.php" class="text-orange-600 hover:underline ml-auto">&larr; Kembali ke Beranda</a>
@@ -260,7 +260,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['kontrol_presentasi'])
   </script>
   <script>
     document.addEventListener('DOMContentLoaded', function() {
-      var btnTampilLayar = document.querySelector('a[href^="preview.php"]');
+      var btnTampilLayar = document.getElementById('btn-tampil-layar');
       if (btnTampilLayar) {
         btnTampilLayar.addEventListener('click', function(e) {
           e.preventDefault();
