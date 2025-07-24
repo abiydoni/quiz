@@ -60,7 +60,7 @@ if (!$quiz) {
           <i class="fa-solid fa-circle-info text-2xl text-blue-500"></i>
           <span class="font-bold text-blue-700 text-2xl">Cara Join Quiz</span>
         </div>
-        <div class="mb-2">1. Buka <b>join.php</b> di browser HP/laptop Anda.</div>
+        <div class="mb-2">1. Buka <b>peserta</b> di browser HP/laptop Anda.</div>
         <div class="mb-2">2. Masukkan kode berikut:</div>
         <div class="font-mono text-3xl text-blue-700 tracking-widest mb-2" style="letter-spacing:0.2em;">
           <?= htmlspecialchars($kode) ?>

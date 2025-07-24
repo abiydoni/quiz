@@ -3,7 +3,7 @@ session_start();
 include_once 'api/db.php';
 
 if (!isset($_SESSION['id_peserta'], $_SESSION['kode_quiz'])) {
-  header("Location: join.php");
+  header("Location: peserta");
   exit;
 }
 
@@ -108,7 +108,7 @@ $nama_peserta = $peserta ? $peserta['nama'] : '';
       const res = await fetch(`api/quiz.php?action=status_presentasi&kode=<?= $kode_quiz ?>`);
       const text = await res.text();
       if (!text || text.trim() === '{}' || text.trim() === '[]') {
-        window.location.href = 'join.php';
+        window.location.href = 'peserta';
         return;
       }
       let data;

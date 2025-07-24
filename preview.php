@@ -555,7 +555,7 @@ $id_soal_pertama = $soal_pertama ? $soal_pertama['id'] : '';
       if (timerFixed) timerFixed.style.display = (mode === 'soal' && !isCountdown) ? '' : 'none';
       if (mode === 'waiting') {
         const jumlahPeserta = data.peserta ? data.peserta.length : 0;
-        const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(window.location.origin+'/join.php')}`;
+        const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(window.location.origin+'/peserta')}`;
         html = `
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4 h-full w-full">
             <!-- Sidebar kiri -->
@@ -567,7 +567,7 @@ $id_soal_pertama = $soal_pertama ? $soal_pertama['id'] : '';
                 <button id="btn-mulai-quiz" type="button" class='w-full px-4 py-2 bg-white text-purple-700 border-2 border-purple-700 hover:bg-purple-700 hover:text-white rounded-full text-lg font-bold shadow transition-all mb-2'>Mulai</button>
               </form>
               <div class="bg-white bg-opacity-50 rounded-xl shadow px-4 py-2 flex flex-col items-center">
-                <div class="text-2xl text-gray-900 font-semibold mb-1">Silahkan buka: <span class='font-mono'>${window.location.origin}/join.php</span></div>
+                <div class="text-2xl text-gray-900 font-semibold mb-1">Silahkan buka: <span class='font-mono'>${window.location.origin}/peserta</span></div>
                 <div class="w-full flex flex-col sm:flex-row items-center justify-center gap-4">
                   <div class="flex flex-col items-center justify-center">
                     <div class="text-xl text-gray-900 mb-1">atau scan QR code:</div>

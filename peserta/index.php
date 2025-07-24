@@ -1,5 +1,5 @@
 <?php
-include_once 'api/db.php';
+include_once '../api/db.php';
 
 $error = '';
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -33,7 +33,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $_SESSION['kode_quiz'] = $kode;
 
         // Redirect ke play.php
-        header("Location: play.php");
+        header("Location: ../play.php");
         exit;
         }
     }

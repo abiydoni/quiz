@@ -80,7 +80,7 @@ if ($host) {
           <i class="fa-solid fa-plus-circle text-2xl group-hover:animate-spin"></i>
           Buat Quiz Baru
         </a>
-        <a href="join.php" class="group flex items-center justify-center gap-3 py-4 px-6 bg-green-500 text-white text-xl font-semibold rounded-xl shadow-lg hover:bg-green-600 transition-all duration-200 transform hover:scale-105 focus:outline-none mb-4">
+        <a href="peserta" class="group flex items-center justify-center gap-3 py-4 px-6 bg-green-500 text-white text-xl font-semibold rounded-xl shadow-lg hover:bg-green-600 transition-all duration-200 transform hover:scale-105 focus:outline-none mb-4">
           <i class="fa-solid fa-users text-2xl group-hover:animate-pulse"></i>
           Gabung Quiz
         </a>
