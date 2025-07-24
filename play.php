@@ -339,7 +339,7 @@ if (!$peserta) {
         const opsi = document.getElementById('opsi_' + h);
         const btn = document.getElementById('btn_' + h);
         if (opsi) opsi.innerText = data['jawaban_' + h.toLowerCase()];
-        if (btn) btn.disabled = false;
+        if (btn) btn.disabled = (window.sudahJawab === true);
       });
       // Cek timer di elemen, jika > 0, set waktuHabis = false
       const elemenTimer = document.getElementById('timer');
@@ -360,6 +360,10 @@ if (!$peserta) {
         } else {
           countdownTimer(mulai, data.durasi);
         }
+      }
+      // Reset flag sudahJawab saat soal baru
+      if (resetTimer) {
+        window.sudahJawab = false;
       }
     }
 
@@ -401,7 +405,8 @@ if (!$peserta) {
         });
         return;
       }
-      // Jangan disable tombol, biarkan peserta bisa submit ulang selama timer berjalan
+      disableSemuaTombol();
+      window.sudahJawab = true;
       const res = await fetch(`api/quiz.php?action=jawab`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
@@ -416,6 +421,7 @@ if (!$peserta) {
           timer: 2000,
           showConfirmButton: false
         });
+        disableSemuaTombol();
       } else {
         Swal.fire({
           icon: 'error',
