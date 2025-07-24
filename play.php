@@ -146,6 +146,18 @@ if (!$peserta) {
     let jawabanTerakhir = null;
 
     async function ambilSoal() {
+      // Cek apakah peserta masih ada
+      try {
+        const cekPeserta = await fetch(`api/quiz.php?action=cek_peserta&id_peserta=<?= $id_peserta ?>`);
+        const pesertaStatus = await cekPeserta.json();
+        if (!pesertaStatus || pesertaStatus.status !== 'ok') {
+          window.location.href = 'peserta';
+          return;
+        }
+      } catch (e) {
+        window.location.href = 'peserta';
+        return;
+      }
       // Ambil status presentasi (seperti preview)
       const res = await fetch(`api/quiz.php?action=status_presentasi&kode=<?= $kode_quiz ?>`);
       const text = await res.text();
@@ -179,7 +191,7 @@ if (!$peserta) {
                   <div class="mb-8">
                     <i class="fa-solid fa-trophy text-7xl text-yellow-400 drop-shadow"></i>
                   </div>
-                  <h1 class="text-2xl sm:text-3xl font-extrabold text-white mb-3 tracking-wide drop-shadow-lg">Quiz telah selesai.<br>Terima kasih sudah mengikuti quiz ini!</h1>
+                  <h1 class="text-xl sm:text-3xl font-extrabold text-white text-center mb-3 tracking-wide drop-shadow-lg">Quiz telah selesai.<br>Terima kasih sudah mengikuti quiz ini!</h1>
                   <div class="text-lg text-gray-200 mb-6 text-center max-w-md">Selamat kepada para juara!<br>Jangan lupa tetap semangat belajar dan sampai jumpa di quiz berikutnya.</div>
                 </div>
               </div>

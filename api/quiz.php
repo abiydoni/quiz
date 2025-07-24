@@ -112,4 +112,21 @@ if ($action == 'jawab') {
         'jawaban_benar' => $jawaban_benar
     ]);
     exit;
+}
+
+if ($action == 'cek_peserta') {
+    $id_peserta = $_GET['id_peserta'] ?? '';
+    if (!$id_peserta) {
+        echo json_encode(['status' => 'error', 'msg' => 'ID peserta kosong']);
+        exit;
+    }
+    $stmt = $pdo->prepare("SELECT id FROM tb_peserta WHERE id = ?");
+    $stmt->execute([$id_peserta]);
+    $ada = $stmt->fetchColumn();
+    if ($ada) {
+        echo json_encode(['status' => 'ok']);
+    } else {
+        echo json_encode(['status' => 'error', 'msg' => 'Peserta tidak ditemukan']);
+    }
+    exit;
 } 

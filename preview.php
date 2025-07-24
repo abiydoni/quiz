@@ -762,19 +762,23 @@ $id_soal_pertama = $soal_pertama ? $soal_pertama['id'] : '';
             <div class='fixed inset-0 pointer-events-none z-40'>
               <div id='star-bg-podium' style='position:absolute;width:100vw;height:100vh;top:0;left:0;z-index:1;'></div>
             </div>
-            <div class='flex flex-col items-center justify-center w-full h-full fade-in relative z-50'>
-              <div class='text-5xl md:text-6xl font-extrabold text-center text-yellow-400 mb-4 flex items-center justify-center gap-4 animate-podium-title'><i class='fa-solid fa-award'></i> Selamat Para Juara!</div>
-              <div class='text-2xl md:text-3xl font-bold text-center text-white mb-20 animate-podium-subtitle'>Inilah 3 Peserta Terbaik Quiz Ini</div>
-              <div class='flex flex-row items-end justify-center gap-6 w-full max-w-3xl mx-auto mb-8 relative'>`;
-            order.forEach((idx, i) => {
+            <div id='podium-wrapper' style='opacity:0;pointer-events:none;transition:opacity 0.5s;'>
+              <div class='flex flex-col items-center justify-center w-full h-full fade-in relative z-50'>
+                <div class='text-5xl md:text-6xl font-extrabold text-center text-yellow-400 mb-4 flex items-center justify-center gap-4 animate-podium-title'><i class='fa-solid fa-award'></i> Selamat Para Juara!</div>
+                <div class='text-2xl md:text-3xl font-bold text-center text-white mb-20 animate-podium-subtitle'>Inilah 3 Peserta Terbaik Quiz Ini</div>
+                <div class='flex flex-row items-end justify-center gap-20 w-full max-w-3xl mx-auto mb-8 relative'>`;
+            // Render juara 2 (kiri), juara 1 (tengah), juara 3 (kanan)
+            [1, 0, 2].forEach((idx, i) => {
               const p = podiumData[idx] || { nama: '-', skor: 0 };
               let crown = '';
               let glow = '';
-              if (idx === 1) {
+              let extraZ = '';
+              if (idx === 0) {
                 crown = `<svg class='absolute -top-16 left-1/2 -translate-x-1/2 z-20 animate-crown-bounce' width='60' height='40' viewBox='0 0 60 40' fill='none'><path d='M5 35L20 10L30 30L40 10L55 35' stroke='#facc15' stroke-width='6' stroke-linecap='round' stroke-linejoin='round'/><circle cx='20' cy='10' r='4' fill='#fde047' stroke='#fbbf24' stroke-width='2'/><circle cx='40' cy='10' r='4' fill='#fde047' stroke='#fbbf24' stroke-width='2'/><circle cx='30' cy='30' r='4' fill='#fde047' stroke='#fbbf24' stroke-width='2'/></svg>`;
                 glow = 'podium-glow';
+                extraZ = 'z-20';
               }
-              html += `<div class='flex flex-col items-center justify-end w-32 ${tinggi[idx]} relative ${anim[idx]}'>
+              html += `<div class='flex-shrink-0 flex flex-col items-center justify-end w-72 max-w-2xl md:w-72 md:max-w-2xl sm:w-60 sm:max-w-lg ${tinggi[idx]} relative ${anim[idx]} ${extraZ}'>
                 ${crown}
                 <div class='absolute -top-10 left-1/2 -translate-x-1/2 z-10 text-5xl drop-shadow-lg animate-medal-bounce'>${medal[idx]}</div>
                 <div class='w-full rounded-t-2xl rounded-b-lg bg-gradient-to-t ${warna[idx]} shadow-xl flex flex-col items-center justify-end h-full p-2 border-4 border-white relative ${glow} pb-12'>
@@ -792,13 +796,15 @@ $id_soal_pertama = $soal_pertama ? $soal_pertama['id'] : '';
               <button id='btn-podium-selesai' class='mt-6 px-8 py-3 bg-green-600 hover:bg-green-700 text-white rounded-full text-xl font-bold shadow-lg transition-all animate-podium-ucapan'>
                 <i class='fa-solid fa-check-circle mr-2'></i> Selesai
               </button>
-            </div>`;
+            </div>
+          </div>
+        </div>`;
             // Animasi podium & efek
             const stylePodium = document.createElement('style');
             stylePodium.innerHTML = `
-            @keyframes podiumJuara1 {0%{transform:translateY(80px) scale(0.7);opacity:0;} 60%{transform:translateY(-10px) scale(1.1);opacity:1;} 80%{transform:translateY(0) scale(0.95);} 100%{transform:translateY(0) scale(1);}}
-            @keyframes podiumJuara2 {0%{transform:translateY(80px) scale(0.7);opacity:0;} 70%{transform:translateY(-5px) scale(1.05);opacity:1;} 100%{transform:translateY(0) scale(1);}}
-            @keyframes podiumJuara3 {0%{transform:translateY(80px) scale(0.7);opacity:0;} 80%{transform:translateY(-2px) scale(1.02);opacity:1;} 100%{transform:translateY(0) scale(1);}}
+            @keyframes podiumJuara1 {0%{opacity:0;transform:scale(0.7);} 60%{opacity:1;transform:scale(1.1);} 80%{transform:scale(0.95);} 100%{opacity:1;transform:scale(1);}}
+            @keyframes podiumJuara2 {0%{opacity:0;transform:scale(0.7);} 70%{opacity:1;transform:scale(1.05);} 100%{opacity:1;transform:scale(1);}}
+            @keyframes podiumJuara3 {0%{opacity:0;transform:scale(0.7);} 80%{opacity:1;transform:scale(1.02);} 100%{opacity:1;transform:scale(1);}}
             .animate-podium-juara1{animation:podiumJuara1 1.1s cubic-bezier(.4,2,.6,1) both;}
             .animate-podium-juara2{animation:podiumJuara2 1.3s cubic-bezier(.4,2,.6,1) both;}
             .animate-podium-juara3{animation:podiumJuara3 1.5s cubic-bezier(.4,2,.6,1) both;}
@@ -861,6 +867,13 @@ $id_soal_pertama = $soal_pertama ? $soal_pertama['id'] : '';
               window.effectShown['podium'] = true;
             }
             clearKontrolFloat();
+            setTimeout(() => {
+              const podiumWrap = document.getElementById('podium-wrapper');
+              if (podiumWrap) {
+                podiumWrap.style.opacity = '1';
+                podiumWrap.style.pointerEvents = 'auto';
+              }
+            }, 100);
           });
       }
       // Reset flag efek grafik jika keluar dari mode grafik
