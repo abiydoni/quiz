@@ -710,7 +710,8 @@ $id_soal_pertama = $soal_pertama ? $soal_pertama['id'] : '';
             <div class='mt-8 mb-4 w-full flex justify-center'>
               <div class='w-full text-center'>
                 <div class='text-2xl font-bold text-blue-700 flex items-center justify-center gap-2 mb-4'><i class='fa-solid fa-chart-column'></i> Statistik Jawaban</div>
-                <div id='statistik-jawaban' class='flex flex-row justify-center gap-4'></div>
+                <canvas id='chart-statistik-jawaban' height='70' class='mb-4'></canvas>
+                <!-- Tidak ada card jawaban di bawah grafik -->
               </div>
             </div>
           </div>
@@ -912,12 +913,17 @@ $id_soal_pertama = $soal_pertama ? $soal_pertama['id'] : '';
     async function renderStatistikJawaban() {
       const res = await fetch('api/statistik_jawaban.php?id_soal=' + soalAktif);
       const data = await res.json();
-      const el = document.getElementById('statistik-jawaban');
       const warna = [
-        'bg-gradient-to-r from-red-500 to-pink-400',
-        'bg-gradient-to-r from-blue-500 to-cyan-400',
-        'bg-gradient-to-r from-yellow-400 to-orange-300 text-gray-900',
-        'bg-gradient-to-r from-green-500 to-lime-400'
+        'rgba(239,68,68,0.85)', // merah
+        'rgba(59,130,246,0.85)', // biru
+        'rgba(251,191,36,0.85)', // kuning
+        'rgba(34,197,94,0.85)' // hijau
+      ];
+      const borderWarna = [
+        'rgba(239,68,68,1)',
+        'rgba(59,130,246,1)',
+        'rgba(251,191,36,1)',
+        'rgba(34,197,94,1)'
       ];
       const ikon = [
         '<i class="fa-solid fa-triangle-exclamation mr-2"></i>',
@@ -926,11 +932,112 @@ $id_soal_pertama = $soal_pertama ? $soal_pertama['id'] : '';
         '<i class="fa-solid fa-square mr-2"></i>'
       ];
       const opsi = ['A','B','C','D'];
-      let html = '';
-      opsi.forEach((h, i) => {
-        html += `<div class='${warna[i]} text-white rounded-2xl px-8 py-6 text-xl font-bold flex items-center shadow-xl transition-all select-none min-w-[120px] justify-center statistik-anim' style='animation-delay:${i*0.12}s'>${ikon[i]}<span class='text-2xl font-extrabold ml-2'>${data[h] || 0}</span></div>`;
-      });
-      el.innerHTML = html;
+
+      // Grafik batang Chart.js
+      const canvas = document.getElementById('chart-statistik-jawaban');
+      if (!canvas) {
+        const parent = document.querySelector('.statistik-anim');
+        if (parent) parent.innerHTML += '<div class="text-red-600 font-bold mt-4">Canvas grafik tidak ditemukan!</div>';
+        return;
+      }
+      let ctx;
+      try {
+        ctx = canvas.getContext('2d');
+      } catch (e) {
+        console.error('Gagal mendapatkan context 2d:', e);
+        const parent = document.querySelector('.statistik-anim');
+        if (parent) parent.innerHTML += '<div class="text-red-600 font-bold mt-4">Gagal mendapatkan context 2d!</div>';
+        return;
+      }
+      if (window.chartStatistikJawaban) window.chartStatistikJawaban.destroy();
+      // Definisikan plugin custom label card
+      const customCardLabelPlugin = {
+        id: 'customCardLabel',
+        afterDraw(chart) {
+          const old = document.querySelectorAll('.chart-xcard-label');
+          old.forEach(e => e.remove());
+          const meta = chart.getDatasetMeta(0);
+          const labels = chart.data.labels;
+          const chartArea = chart.chartArea;
+          const cardGrad = [
+            'linear-gradient(90deg,#ef4444,#ec4899)', // merah ke pink
+            'linear-gradient(90deg,#3b82f6,#22d3ee)', // biru ke cyan
+            'linear-gradient(90deg,#fbbf24,#fb7185)', // kuning ke orange
+            'linear-gradient(90deg,#22c55e,#a3e635)' // hijau ke lime
+          ];
+          labels.forEach((label, i) => {
+            const bar = meta.data[i];
+            if (!bar) return;
+            const x = bar.x;
+            const y = chartArea.bottom + 18;
+            const div = document.createElement('div');
+            div.className = 'chart-xcard-label';
+            div.style.position = 'absolute';
+            div.style.left = (chart.canvas.offsetLeft + x - 100) + 'px'; // 180/2 = 90
+            div.style.top = (chart.canvas.offsetTop + y) + 'px';
+            div.style.width = '200px';
+            div.style.height = '60px';
+            div.style.background = cardGrad[i];
+            div.style.color = '#fff';
+            div.style.fontWeight = 'bold';
+            div.style.fontSize = '2rem';
+            div.style.borderRadius = '18px';
+            div.style.display = 'flex';
+            div.style.alignItems = 'center';
+            div.style.justifyContent = 'center';
+            div.style.boxShadow = '0 2px 8px #0002';
+            div.innerHTML = `${ikon[i]}<span class='ml-2'>${label}</span><span class='ml-3 text-2xl font-extrabold'>${data[label] || 0}</span>`;
+            chart.canvas.parentNode.appendChild(div);
+          });
+        }
+      };
+      try {
+        window.chartStatistikJawaban = new Chart(ctx, {
+          type: 'bar',
+          data: {
+            labels: opsi,
+            datasets: [{
+              label: 'Jumlah Peserta',
+              data: opsi.map(h => data[h] || 0),
+              backgroundColor: warna,
+              borderColor: borderWarna,
+              borderWidth: 2,
+              borderRadius: 12,
+              maxBarThickness: 140
+            }]
+          },
+          options: {
+            responsive: true,
+            plugins: {
+              legend: { display: false },
+              tooltip: { enabled: true }
+            },
+            scales: {
+              x: {
+                grid: { display: false, drawBorder: false, drawOnChartArea: false, drawTicks: false },
+                border: { display: false },
+                ticks: {
+                  color: '#fff',
+                  font: { weight: 'bold', size: 18 },
+                  padding: 8,
+                  callback: function() { return ''; }
+                }
+              },
+              y: {
+                beginAtZero: true,
+                grid: { display: false, drawBorder: false, drawOnChartArea: false, drawTicks: false },
+                border: { display: false },
+                ticks: { display: false, color: '#222', font: { weight: 'bold', size: 16 }, stepSize: 1 }
+              }
+            }
+          },
+          plugins: [customCardLabelPlugin]
+        });
+      } catch (e) {
+        console.error('Gagal inisialisasi Chart.js:', e);
+        const parent = document.querySelector('.statistik-anim');
+        if (parent) parent.innerHTML += '<div class="text-red-600 font-bold mt-4">Gagal inisialisasi Chart.js! ' + e + '</div>';
+      }
       // confetti saat statistik muncul, hanya sekali per masuk mode grafik
       if (window.confetti && !window.effectShown['grafik']) {
         setTimeout(()=>{ confetti({particleCount: 120, spread: 90, origin: {y:0.6}}); }, 400);

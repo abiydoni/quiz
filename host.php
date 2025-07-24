@@ -68,12 +68,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['kontrol_presentasi'])
     } elseif ($aksi === 'soal_berikutnya') {
         // Cari soal berikutnya
         $next = false;
+        $found = false;
         foreach ($soals as $i => $s) {
             if ($s['id'] == $soal_aktif) {
+                $found = true;
                 $next = $soals[$i+1] ?? null;
                 break;
             }
         }
+        // Fallback: jika $soal_aktif tidak ditemukan, ambil soal pertama yang id-nya lebih besar
+        if (!$found && $soal_aktif) {
+            foreach ($soals as $s) {
+                if ($s['id'] > $soal_aktif) {
+                    $next = $s;
+                    break;
+                }
+            }
+        }
+        // Debug log
+        error_log('soal_aktif: ' . $soal_aktif);
+        error_log('soals: ' . json_encode(array_column($soals, 'id')));
+        error_log('next: ' . ($next ? $next['id'] : 'null'));
         if ($next) {
             $waktu_mulai = date('Y-m-d H:i:s');
             $stmt = $pdo->prepare("INSERT INTO tb_status_quiz (id_quiz, id_soal, waktu_mulai, mode) VALUES (?, ?, ?, 'soal')");
@@ -114,7 +129,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['kontrol_presentasi'])
       <form id="form-mulai-quiz" method="post" class="inline">
         <input type="hidden" name="kontrol_presentasi" value="1">
         <input type="hidden" name="aksi" value="mulai_quiz">
-        <button type="button" id="btn-mulai-quiz" class="inline-flex items-center gap-2 px-4 py-2 bg-pink-600 hover:bg-pink-700 text-white rounded-lg font-semibold shadow transition-all">
+        <button type="submit" id="btn-mulai-quiz" class="inline-flex items-center gap-2 px-4 py-2 bg-pink-600 hover:bg-pink-700 text-white rounded-lg font-semibold shadow transition-all">
           <i class="fa-solid fa-play"></i> Mulai Quiz (Lobby)
         </button>
       </form>
@@ -243,28 +258,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['kontrol_presentasi'])
       return false;
     }
   </script>
-  <script>
-document.addEventListener('DOMContentLoaded', function() {
-  var btnMulai = document.querySelector('button[name="mulai_quiz"]');
-  if (btnMulai) {
-    btnMulai.addEventListener('click', function(e) {
-      var kode = document.querySelector('input[name="kode"]');
-      var quizKode = kode ? kode.value : '';
-      var url = 'preview.php?kode=' + encodeURIComponent(quizKode);
-      var win = window.open(url, '_blank');
-      if (win) {
-        win.focus();
-        // Coba minta fullscreen (tidak semua browser mengizinkan)
-        win.onload = function() {
-          if (win.document.documentElement.requestFullscreen) {
-            win.document.documentElement.requestFullscreen();
-          }
-        };
-      }
-    });
-  }
-});
-</script>
   <script>
     document.addEventListener('DOMContentLoaded', function() {
       var btnTampilLayar = document.querySelector('a[href^="preview.php"]');

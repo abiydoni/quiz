@@ -101,6 +101,11 @@ if ($action == 'jawab') {
         $stmt = $pdo->prepare("INSERT INTO tb_jawaban (id_peserta, id_soal, jawaban, benar, waktu_jawab) VALUES (?, ?, ?, ?, NOW())");
         $stmt->execute([$id_peserta, $id_soal, $jawaban, $benar]);
     }
+    // Update skor peserta jika jawaban benar
+    if ($benar) {
+        $stmt = $pdo->prepare("UPDATE tb_peserta SET skor = skor + 100 WHERE id = ?");
+        $stmt->execute([$id_peserta]);
+    }
     echo json_encode([
         'status' => 'ok',
         'benar' => $benar,

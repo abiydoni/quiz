@@ -1,8 +1,25 @@
 <?php
 include_once '../api/db.php';
 
+// Reset session jika ada ?reset=1
+if (isset($_GET['reset'])) {
+    session_start();
+    session_unset();
+    session_destroy();
+    if (ini_get('session.use_cookies')) {
+        $params = session_get_cookie_params();
+        setcookie(session_name(), '', time() - 42000,
+            $params['path'], $params['domain'],
+            $params['secure'], $params['httponly']
+        );
+    }
+    // Setelah reset, tampilkan form join seperti biasa
+}
+
 $error = '';
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    session_start();
+    echo '<!-- SESSION_ID: ' . htmlspecialchars(session_id()) . ' -->';
     $kode = strtoupper(trim($_POST['kode_quiz'] ?? ''));
     $nama = trim($_POST['nama'] ?? '');
 

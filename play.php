@@ -11,10 +11,36 @@ $id_peserta = $_SESSION['id_peserta'];
 $kode_quiz = $_SESSION['kode_quiz'];
 
 // Ambil nama peserta
-$stmt = $pdo->prepare("SELECT nama FROM tb_peserta WHERE id = ?");
+$stmt = $pdo->prepare("SELECT nama, id_quiz FROM tb_peserta WHERE id = ?");
 $stmt->execute([$id_peserta]);
 $peserta = $stmt->fetch();
 $nama_peserta = $peserta ? $peserta['nama'] : '';
+$id_quiz_peserta = $peserta ? $peserta['id_quiz'] : null;
+
+// DEBUG: tampilkan session dan hasil query peserta
+if (isset($_SESSION['id_peserta'], $_SESSION['kode_quiz'])) {
+  echo '<!-- SESSION id_peserta: ' . htmlspecialchars($_SESSION['id_peserta']) . ' -->';
+  echo '<!-- SESSION kode_quiz: ' . htmlspecialchars($_SESSION['kode_quiz']) . ' -->';
+}
+echo '<!-- Peserta DB: ' . htmlspecialchars(json_encode($peserta)) . ' -->';
+
+// Cek jika peserta sudah dihapus tapi kode quiz masih sama
+if (!$peserta) {
+  // Cek apakah kode quiz masih ada
+  $stmt = $pdo->prepare("SELECT id FROM tb_quiz WHERE kode_quiz = ?");
+  $stmt->execute([$kode_quiz]);
+  $id_quiz = $stmt->fetchColumn();
+  if ($id_quiz) {
+    // Quiz masih ada, berarti peserta sudah dihapus (reset quiz)
+    // Slade Sesi Habis (khusus peserta lama yang belum join ulang)
+    echo '<!DOCTYPE html><html lang="id"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Sesi Habis</title><script src="https://cdn.tailwindcss.com"></script></head><body class="bg-black min-h-screen flex items-center justify-center"><div class="flex flex-col items-center justify-center min-h-screen w-full"><div class="mb-6 text-3xl sm:text-4xl font-bold text-pink-500 drop-shadow">Sesi Habis</div><div class="bg-black/90 backdrop-blur-lg rounded-3xl shadow-2xl p-10 flex flex-col items-center border-4 border-pink-300 max-w-md w-full"><div class="mb-8"><i class="fa-solid fa-hourglass-end text-7xl text-pink-400 drop-shadow"></i></div><h1 class="text-2xl sm:text-3xl font-extrabold text-pink-700 mb-3 text-center tracking-wide drop-shadow-lg">Sesi quiz sebelumnya telah habis.<br>Silakan join ulang untuk mengikuti quiz berikutnya!</h1><div class="text-lg text-gray-700 mb-6 text-center max-w-md">Klik tombol di bawah untuk join ulang ke quiz.</div><a href="peserta" class="mt-4 px-6 py-3 bg-pink-600 hover:bg-pink-700 text-white rounded-full text-lg font-bold shadow transition-all flex items-center gap-2"><i class="fa-solid fa-arrow-left"></i>Join Quiz</a></div></div></body></html>';
+    exit;
+  } else {
+    // Quiz sudah tidak ada, redirect ke peserta
+    header("Location: peserta");
+    exit;
+  }
+}
 ?>
 <!DOCTYPE html>
 <html lang="id">
@@ -26,24 +52,39 @@ $nama_peserta = $peserta ? $peserta['nama'] : '';
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <style>
-    .timer-anim { animation: pulse 1s infinite; }
-    @keyframes pulse { 0% { color: #f59e42; } 50% { color: #ef4444; } 100% { color: #f59e42; } }
+    .animate-fadein-card { animation: fadeInCard 0.7s cubic-bezier(.4,2,.6,1); }
+    .animate-fadein-top { animation: fadeInTop 0.8s cubic-bezier(.4,2,.6,1); }
+    .animate-fadein-opsi { animation: fadeInOpsi 1s cubic-bezier(.4,2,.6,1); }
+    @keyframes fadeInCard { from { opacity: 0; transform: scale(0.95) translateY(40px);} to { opacity: 1; transform: none; } }
+    @keyframes fadeInTop { from { opacity: 0; transform: translateY(-30px);} to { opacity: 1; transform: none; } }
+    @keyframes fadeInOpsi { from { opacity: 0; transform: scale(0.7);} to { opacity: 1; transform: none; } }
+    .jawaban-btn:active { box-shadow: 0 0 0 4px #a5b4fc55; }
+    @media (max-width: 640px) {
+      .fade-in, .animate-fadein-card { border-radius: 1.2rem !important; padding: 1.2rem !important; }
+    }
+    /* Animasi custom jam pasir */
+    @keyframes hourglass-spin { 0% { transform: rotate(0deg);} 100% { transform: rotate(360deg);} }
+    .hourglass-anim {
+      animation: hourglass-spin 2.5s cubic-bezier(.4,0,.2,1) infinite;
+      will-change: transform;
+      display: inline-block;
+    }
   </style>
 </head>
 <body class="bg-black min-h-screen flex items-center justify-center">
   <!-- Card menunggu soal -->
   <div id="waiting-container" class="flex flex-col items-center justify-center min-h-screen w-full">
-    <div class="mb-6 text-2xl sm:text-3xl font-bold text-white drop-shadow animate-fadein-top">Selamat datang, <span class="text-indigo-400"><?= htmlspecialchars($nama_peserta) ?></span>!</div>
-    <div class="bg-black/80 backdrop-blur-lg rounded-3xl shadow-2xl p-10 flex flex-col items-center border border-gray-800 max-w-md w-full animate-fadein-card">
-      <div class="mb-8 animate-pulse">
+    <div class="mb-6 text-2xl sm:text-3xl font-bold text-white drop-shadow">Selamat datang, <span class="text-indigo-400"><?= htmlspecialchars($nama_peserta) ?></span>!</div>
+    <div class="bg-black/80 backdrop-blur-lg rounded-3xl shadow-2xl p-10 flex flex-col items-center border border-gray-800 max-w-md w-full">
+      <div class="mb-8">
         <i class="fa-solid fa-hourglass-half text-7xl text-indigo-400 drop-shadow"></i>
       </div>
-      <h1 class="text-3xl sm:text-4xl font-extrabold text-white mb-3 animate-fadein-top tracking-wide drop-shadow-lg">Menunggu Soal...</h1>
-      <div class="text-lg text-gray-200 mb-6 animate-fadein-top text-center max-w-md">Quiz akan segera dimulai.<br>Perhatikan layar proyektor dan tunggu host menampilkan soal.</div>
-      <div class="flex gap-2 mt-2 animate-fadein-top">
-        <span class="w-3 h-3 bg-indigo-400 rounded-full animate-bounce"></span>
-        <span class="w-3 h-3 bg-indigo-500 rounded-full animate-bounce delay-150"></span>
-        <span class="w-3 h-3 bg-indigo-600 rounded-full animate-bounce delay-300"></span>
+      <h1 class="text-3xl sm:text-4xl font-extrabold text-white mb-3">Menunggu Soal...</h1>
+      <div class="text-lg text-gray-200 mb-6 text-center max-w-md">Quiz akan segera dimulai.<br>Perhatikan layar proyektor dan tunggu host menampilkan soal.</div>
+      <div class="flex gap-2 mt-2">
+        <span class="w-3 h-3 bg-indigo-400 rounded-full"></span>
+        <span class="w-3 h-3 bg-indigo-500 rounded-full"></span>
+        <span class="w-3 h-3 bg-indigo-600 rounded-full"></span>
       </div>
     </div>
   </div>
@@ -51,9 +92,9 @@ $nama_peserta = $peserta ? $peserta['nama'] : '';
   <div id="main-card" style="display:none; background:rgba(0,0,0,0.92);" class="w-full max-w-xl p-4 sm:p-8 rounded-3xl shadow-2xl fade-in text-center backdrop-blur-md animate-fadein-card border border-gray-800">
     <div id="soal-info" class="text-lg sm:text-xl font-bold text-indigo-300 mb-4 animate-fadein-top"></div>
     <h1 id="soal" class="text-xl sm:text-2xl font-bold text-white mb-6 animate-fadein-top"></h1>
-    <div class="text-lg font-semibold text-orange-400 mb-4 animate-pulse-timer">
-      <i class="fa-solid fa-hourglass-half animate-spin"></i>
-      <span id="timer" class="timer-anim">--</span> detik
+    <div class="text-lg font-semibold text-orange-400 mb-4">
+      <i class="fa-solid fa-hourglass-half"></i>
+      <span id="timer">--</span> detik
     </div>
     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4" id="opsi-jawaban" style="display:none;">
       <?php
@@ -86,21 +127,22 @@ $nama_peserta = $peserta ? $peserta['nama'] : '';
     @keyframes fadeInCard { from { opacity: 0; transform: scale(0.95) translateY(40px);} to { opacity: 1; transform: none; } }
     @keyframes fadeInTop { from { opacity: 0; transform: translateY(-30px);} to { opacity: 1; transform: none; } }
     @keyframes fadeInOpsi { from { opacity: 0; transform: scale(0.7);} to { opacity: 1; transform: none; } }
-    .animate-pulse-timer { animation: pulseTimer 1.2s infinite; }
-    @keyframes pulseTimer { 0% { color: #f59e42; } 50% { color: #ef4444; } 100% { color: #f59e42; } }
     .jawaban-btn:active { box-shadow: 0 0 0 4px #a5b4fc55; }
     @media (max-width: 640px) {
       .fade-in, .animate-fadein-card { border-radius: 1.2rem !important; padding: 1.2rem !important; }
     }
+    /* Animasi custom jam pasir */
+    @keyframes hourglass-spin { 0% { transform: rotate(0deg);} 100% { transform: rotate(360deg);} }
+    .hourglass-anim { animation: hourglass-spin 2.5s cubic-bezier(.4,0,.2,1) infinite; }
   </style>
   <script>
     let soalAktif = 0;
     let waktuHabis = false;
     let timerInterval;
     let durasiSoal = 20;
-    let lastSoalId = 0;
+    let lastSoalId = null; // deklarasi global di luar fungsi
     let timerStartedForSoal = 0;
-    let lastMode = '';
+    let lastMode = ''; // deklarasi global di luar fungsi
     let jawabanTerakhir = null;
 
     async function ambilSoal() {
@@ -132,13 +174,13 @@ $nama_peserta = $peserta ? $peserta['nama'] : '';
           if (window.lastWaitingType !== 'terimakasih') {
             waitingEl.innerHTML = `
               <div class="flex flex-col items-center justify-center min-h-screen w-full">
-                <div class="mb-6 text-3xl sm:text-4xl font-bold text-white drop-shadow animate-fadein-top">Terima Kasih!</div>
-                <div class="bg-black/80 backdrop-blur-lg rounded-3xl shadow-2xl p-10 flex flex-col items-center border border-gray-800 max-w-md w-full animate-fadein-card">
-                  <div class="mb-8 animate-pulse">
+                <div class="mb-6 text-3xl sm:text-4xl font-bold text-yellow-400 drop-shadow">Terima Kasih!</div>
+                <div class="bg-black/90 backdrop-blur-lg rounded-3xl shadow-2xl p-10 flex flex-col items-center border border-gray-800 max-w-md w-full">
+                  <div class="mb-8">
                     <i class="fa-solid fa-trophy text-7xl text-yellow-400 drop-shadow"></i>
                   </div>
-                  <h1 class="text-2xl sm:text-3xl font-extrabold text-white mb-3 animate-fadein-top tracking-wide drop-shadow-lg">Quiz telah selesai.<br>Terima kasih sudah mengikuti quiz ini!</h1>
-                  <div class="text-lg text-gray-200 mb-6 animate-fadein-top text-center max-w-md">Selamat kepada para juara!<br>Jangan lupa tetap semangat belajar dan sampai jumpa di quiz berikutnya.</div>
+                  <h1 class="text-2xl sm:text-3xl font-extrabold text-white mb-3 tracking-wide drop-shadow-lg">Quiz telah selesai.<br>Terima kasih sudah mengikuti quiz ini!</h1>
+                  <div class="text-lg text-gray-200 mb-6 text-center max-w-md">Selamat kepada para juara!<br>Jangan lupa tetap semangat belajar dan sampai jumpa di quiz berikutnya.</div>
                 </div>
               </div>
             `;
@@ -158,30 +200,42 @@ $nama_peserta = $peserta ? $peserta['nama'] : '';
         return;
       }
       // Pengecekan mode waiting PALING ATAS
-      if (data && (data.mode === 'waiting' || data.mode === 'grafik' || data.mode === 'ranking' || data.mode === 'podium')) {
+      if (data && data.mode === 'waiting') {
         var waitingEl = document.getElementById('waiting-container');
         var mainCardEl = document.getElementById('main-card');
         var opsiJawabanEl = document.getElementById('opsi-jawaban');
-        // Tampilkan waiting-container
         if (waitingEl) {
           waitingEl.style.display = '';
-          // Kembalikan isi default jika bukan akhir quiz
-          if (window.lastWaitingType !== 'default') {
+          // Jika mode waiting dan tidak ada soal aktif, tampilkan slade Menunggu Soal...
+          if (data.id_soal) {
             if (window.waitingDefaultHTML) waitingEl.innerHTML = window.waitingDefaultHTML;
             window.lastWaitingType = 'default';
+          } else {
+            // Tidak ada soal aktif, peserta baru join ulang, host belum mulai quiz
+            waitingEl.innerHTML = `
+              <div class="flex flex-col items-center justify-center min-h-screen w-full">
+                <div class="mb-6 text-3xl sm:text-4xl font-bold text-pink-500 drop-shadow">Quiz Segera Dimulai</div>
+                <div class="bg-black/90 backdrop-blur-lg rounded-3xl shadow-2xl p-10 flex flex-col items-center border-4 border-pink-300 max-w-md w-full">
+                  <div class="mb-8 flex flex-col items-center">
+                    <i class="fa-solid fa-hourglass-half text-7xl text-pink-300 drop-shadow hourglass-anim"></i>
+                    <div class="mt-4 font-bold text-pink-200">Menunggu host menampilkan soal...</div>
+                  </div>
+                  <h1 class="text-2xl sm:text-3xl font-extrabold text-white mb-3 text-center tracking-wide drop-shadow-lg">Quiz akan segera dimulai.<br>Silakan tunggu host menampilkan soal pertama.</h1>
+                  <div class="text-lg text-pink-200 mb-6 text-center max-w-md">Jika halaman ini tidak berubah dalam beberapa menit, silakan hubungi host.</div>
+                </div>
+              </div>
+            `;
+            window.lastWaitingType = 'habis';
           }
         }
-        // Sembunyikan main-card
         if (mainCardEl) {
           mainCardEl.style.display = 'none';
           if (window.mainCardDefaultHTML) mainCardEl.innerHTML = window.mainCardDefaultHTML;
           initMainCard();
         }
         if (opsiJawabanEl) opsiJawabanEl.style.display = 'none';
-        // Hapus slade jika ada
         var slade = document.getElementById('slade-jawaban');
         if (slade) slade.remove();
-        console.log('Mode:', data.mode, 'waiting-container:', waitingEl?.style.display, 'main-card:', mainCardEl?.style.display);
         setTimeout(ambilSoal, 2000);
         lastMode = data.mode;
         return;
@@ -195,6 +249,11 @@ $nama_peserta = $peserta ? $peserta['nama'] : '';
         if (mainCardEl) mainCardEl.style.display = '';
         if (opsiJawabanEl) opsiJawabanEl.style.display = '';
       }
+      // Reset lastSoalId dan lastMode jika mode berubah ke soal
+      if (data && data.mode === 'soal' && lastMode !== 'soal') {
+        lastSoalId = null;
+        lastMode = null;
+      }
       // Di awal polling ambilSoal()
       if (typeof window.countdownSudahJalan === 'undefined') window.countdownSudahJalan = false;
       // Pada JS, saat mode soal, langsung tampilkan card jawaban tanpa countdown
@@ -205,6 +264,13 @@ $nama_peserta = $peserta ? $peserta['nama'] : '';
       if (data && data.mode !== 'soal') {
         window.countdownSudahJalan = false;
       }
+      // Jika mode soal, pastikan main-card dan opsi-jawaban di-show
+      if (data && data.mode === 'soal') {
+        var mainCardEl = document.getElementById('main-card');
+        var opsiJawabanEl = document.getElementById('opsi-jawaban');
+        if (mainCardEl) mainCardEl.style.display = '';
+        if (opsiJawabanEl) opsiJawabanEl.style.display = '';
+      }
       // baru setelah ini boleh cek id_soal dan panggil tampilkanSoal()
       let soalBaru = false;
       if (data && data.id_soal && data.id_soal != lastSoalId) {
@@ -213,15 +279,24 @@ $nama_peserta = $peserta ? $peserta['nama'] : '';
         waktuHabis = false;
         durasiSoal = data.durasi || 20;
         timerStartedForSoal = data.id_soal;
+        // Render ulang main-card dari template awal setiap kali soal baru
+        var mainCardEl = document.getElementById('main-card');
+        if (mainCardEl && window.mainCardDefaultHTML) {
+          mainCardEl.innerHTML = window.mainCardDefaultHTML;
+          initMainCard();
+        }
         tampilkanSoal(data, true); // reset timer
       } else if (data && data.id_soal) {
         tampilkanSoal(data, false); // update tampilan, jangan reset timer
       }
       // Cek mode presentasi
-      if (data && data.mode === 'jawaban' && lastMode !== 'jawaban') {
+      if (data && data.mode === 'jawaban' && (lastMode !== 'jawaban' || data.id_soal !== lastSoalId)) {
         tampilkanSladeJawaban(data.jawaban_benar);
+        lastSoalId = data.id_soal;
+        lastMode = data.mode;
+      } else {
+        lastMode = data && data.mode ? data.mode : '';
       }
-      lastMode = data && data.mode ? data.mode : '';
       if (data && data.mode !== 'waiting' && data.mode !== 'grafik' && data.mode !== 'ranking') {
         var opsiJawabanEl = document.getElementById('opsi-jawaban');
         if (opsiJawabanEl) opsiJawabanEl.style.display = '';
@@ -230,6 +305,11 @@ $nama_peserta = $peserta ? $peserta['nama'] : '';
     }
 
     function tampilkanSoal(data, resetTimer = false) {
+      // Paksa tampilkan main-card dan sembunyikan waiting-container setiap kali tampilkanSoal dipanggil
+      var mainCardEl = document.getElementById('main-card');
+      var waitingEl = document.getElementById('waiting-container');
+      if (mainCardEl) mainCardEl.style.display = '';
+      if (waitingEl) waitingEl.style.display = 'none';
       // Jangan tampilkan card jawaban jika mode waiting
       if (lastMode === 'waiting' || data.mode === 'waiting' || data.mode === 'grafik' || data.mode === 'ranking') {
         return;
