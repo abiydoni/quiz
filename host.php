@@ -100,7 +100,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['kontrol_presentasi'])
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </head>
 <body class="bg-orange-50 min-h-screen p-6">
-  <div class="max-w-3xl mx-auto">
+  <div class="max-w-full mx-auto">
     <h1 class="text-3xl font-bold text-orange-700 mb-6 flex items-center gap-3">
       <i class="fa-solid fa-chalkboard-user"></i> Kontrol Quiz: <?= htmlspecialchars($quiz['nama_quiz']) ?>
     </h1>
@@ -111,77 +111,87 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['kontrol_presentasi'])
       <a href="leaderboard.php?kode=<?= htmlspecialchars($kode) ?>" class="inline-flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg font-semibold shadow transition-all">
         <i class="fa-solid fa-trophy"></i> Leaderboard
       </a>
+      <form id="form-mulai-quiz" method="post" class="inline">
+        <input type="hidden" name="kontrol_presentasi" value="1">
+        <input type="hidden" name="aksi" value="mulai_quiz">
+        <button type="button" id="btn-mulai-quiz" class="inline-flex items-center gap-2 px-4 py-2 bg-pink-600 hover:bg-pink-700 text-white rounded-lg font-semibold shadow transition-all">
+          <i class="fa-solid fa-play"></i> Mulai Quiz (Lobby)
+        </button>
+      </form>
       <a href="preview.php?kode=<?= htmlspecialchars($kode) ?>" target="_blank" class="inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-semibold shadow transition-all">
         <i class="fa-solid fa-desktop"></i> Tampilkan di Layar
       </a>
       <a href="index.php" class="text-orange-600 hover:underline ml-auto">&larr; Kembali ke Beranda</a>
     </div>
-    <form id="form-mulai-quiz" method="post" class="mb-4 flex justify-center">
-      <input type="hidden" name="kontrol_presentasi" value="1">
-      <input type="hidden" name="aksi" value="mulai_quiz">
-      <button type="button" id="btn-mulai-quiz" class="px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-lg font-bold shadow transition-all">
-        <i class="fa-solid fa-play"></i> Mulai Quiz (Lobby)
-      </button>
-    </form>
-    <script>
-document.getElementById('btn-mulai-quiz').onclick = function(e) {
-  Swal.fire({
-    title: 'Konfirmasi Mulai Quiz',
-    text: 'Semua data peserta dan jawaban akan dihapus. Apakah Anda yakin ingin memulai quiz dari awal?',
-    icon: 'warning',
-    showCancelButton: true,
-    confirmButtonColor: '#3085d6',
-    cancelButtonColor: '#d33',
-    confirmButtonText: 'Ya, mulai quiz!',
-    cancelButtonText: 'Batal'
-  }).then((result) => {
-    if (result.isConfirmed) {
-      document.getElementById('form-mulai-quiz').submit();
-    }
-  });
-};
-</script>
     <div class="mb-6 flex justify-between items-center">
       <h2 class="text-xl font-bold text-orange-700 flex items-center gap-2"><i class="fa-solid fa-list-ol"></i> Daftar Soal</h2>
       <a href="tambah_soal.php?id_quiz=<?= $quiz['id'] ?>&kode=<?= htmlspecialchars($kode) ?>" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-semibold shadow transition-all flex items-center gap-2"><i class="fa-solid fa-plus"></i> Tambah Soal</a>
     </div>
-    <div class="grid gap-6">
-      <?php foreach ($soals as $index => $soal): ?>
-        <div class="p-6 border rounded-xl bg-white shadow flex flex-col gap-2 <?php if ($soal['id'] == $soal_aktif) echo 'border-4 border-orange-500'; else echo 'border-gray-200'; ?>">
-          <div class="flex items-center gap-3 mb-2">
-            <span class="text-lg font-bold text-orange-700">Soal <?= $index + 1 ?>:</span>
-            <?php if ($soal['id'] == $soal_aktif): ?>
-              <span class="px-3 py-1 bg-orange-500 text-white rounded-full text-xs font-bold animate-pulse"><i class="fa-solid fa-bolt"></i> Soal Aktif</span>
-            <?php endif; ?>
-            <a href="edit_soal.php?id=<?= $soal['id'] ?>&kode=<?= htmlspecialchars($kode) ?>" class="ml-auto px-3 py-1 bg-yellow-400 hover:bg-yellow-500 text-white rounded-lg text-sm font-bold shadow transition-all" title="Edit Soal"><i class="fa-solid fa-pen-to-square"></i></a>
-            <button onclick="return hapusSoal(<?= $soal['id'] ?>, '<?= addslashes($soal['soal']) ?>')" class="px-3 py-1 bg-red-600 hover:bg-red-700 text-white rounded-lg text-sm font-bold shadow transition-all" title="Hapus Soal"><i class="fa-solid fa-trash"></i></button>
-          </div>
-          <?php if (!empty($soal['gambar'])): ?>
-            <img src="assets/soal/<?= htmlspecialchars($soal['gambar']) ?>" alt="Gambar Soal" class="mb-3 max-h-56 rounded-lg mx-auto shadow">
-          <?php endif; ?>
-          <p class="mb-2 text-lg text-gray-800"><?= htmlspecialchars($soal['soal']) ?></p>
-          <ul class="list-disc ml-6 text-base mb-2 text-gray-700">
-            <li><b>A.</b> <?= htmlspecialchars($soal['jawaban_a']) ?></li>
-            <li><b>B.</b> <?= htmlspecialchars($soal['jawaban_b']) ?></li>
-            <li><b>C.</b> <?= htmlspecialchars($soal['jawaban_c']) ?></li>
-            <li><b>D.</b> <?= htmlspecialchars($soal['jawaban_d']) ?></li>
-          </ul>
-          <div class="flex gap-4 items-center mt-2">
-            <span class="text-sm text-gray-500"><i class="fa-solid fa-clock"></i> Durasi: <?= (int)$soal['durasi'] ?> detik</span>
-            <?php if ((!$status || ($mode === 'waiting' && !$soal_aktif))): ?>
-              <form method="post" class="inline">
-                <input type="hidden" name="kontrol_presentasi" value="1">
-                <input type="hidden" name="aksi" value="tampilkan_soal">
-                <input type="hidden" name="id_soal" value="<?= $soal['id'] ?>">
-                <input type="hidden" name="durasi" value="<?= (int)$soal['durasi'] ?>">
-                <button class="ml-4 px-4 py-2 bg-orange-600 hover:bg-orange-700 text-white rounded-lg font-semibold shadow transition-all" onclick="return confirmTampilkanSoal(event, <?= $index + 1 ?>)">
-                  <i class="fa-solid fa-play"></i> Mulai Soal Ini
-                </button>
-              </form>
-            <?php endif; ?>
-          </div>
-        </div>
-      <?php endforeach; ?>
+    <div class="overflow-x-auto">
+      <table class="min-w-full bg-white rounded-xl shadow text-sm">
+        <thead>
+          <tr class="bg-orange-100 text-orange-800">
+            <th class="px-3 py-2 border">No Soal</th>
+            <th class="px-3 py-2 border">Gambar</th>
+            <th class="px-3 py-2 border">Pertanyaan</th>
+            <th class="px-3 py-2 border">Pilihan Jawaban</th>
+            <th class="px-3 py-2 border">Jawaban</th>
+            <th class="px-3 py-2 border">Durasi</th>
+            <th class="px-3 py-2 border">Aksi</th>
+          </tr>
+        </thead>
+        <tbody>
+          <?php foreach ($soals as $index => $soal): ?>
+          <tr class="<?php if ($soal['id'] == $soal_aktif) echo 'bg-orange-50'; ?>">
+            <td class="px-3 py-2 border text-center font-bold">Soal <?= $index + 1 ?></td>
+            <td class="px-3 py-2 border text-center">
+              <?php if (!empty($soal['gambar'])): ?>
+                <img src="assets/soal/<?= htmlspecialchars($soal['gambar']) ?>" alt="Gambar Soal" class="max-h-20 max-w-[80px] rounded shadow mx-auto">
+              <?php else: ?>
+                -
+              <?php endif; ?>
+            </td>
+            <td class="px-3 py-2 border"><?= htmlspecialchars($soal['soal']) ?></td>
+            <td class="px-3 py-2 border">
+              <ul class="list-none p-0 m-0">
+                <li><b>A.</b> <?= htmlspecialchars($soal['jawaban_a']) ?></li>
+                <li><b>B.</b> <?= htmlspecialchars($soal['jawaban_b']) ?></li>
+                <li><b>C.</b> <?= htmlspecialchars($soal['jawaban_c']) ?></li>
+                <li><b>D.</b> <?= htmlspecialchars($soal['jawaban_d']) ?></li>
+              </ul>
+            </td>
+            <td class="px-3 py-2 border text-center font-bold text-green-700">
+              <?php
+                $benar = $soal['jawaban_benar'] ?? '';
+                if ($benar) {
+                  $teks = $soal['jawaban_' . strtolower($benar)] ?? '-';
+                  echo "$benar. $teks";
+                } else {
+                  echo '-';
+                }
+              ?>
+            </td>
+            <td class="px-3 py-2 border text-center"><?= (int)$soal['durasi'] ?> detik</td>
+            <td class="px-3 py-2 border text-center">
+              <a href="edit_soal.php?id=<?= $soal['id'] ?>&kode=<?= htmlspecialchars($kode) ?>" class="px-2 py-1 bg-yellow-400 hover:bg-yellow-500 text-white rounded text-xs font-bold shadow transition-all" title="Edit Soal"><i class="fa-solid fa-pen-to-square"></i></a>
+              <button onclick="return hapusSoal(<?= $soal['id'] ?>, '<?= addslashes($soal['soal']) ?>')" class="px-2 py-1 bg-red-600 hover:bg-red-700 text-white rounded text-xs font-bold shadow transition-all" title="Hapus Soal"><i class="fa-solid fa-trash"></i></button>
+              <?php if ((!$status || ($mode === 'waiting' && !$soal_aktif))): ?>
+                <form method="post" class="inline">
+                  <input type="hidden" name="kontrol_presentasi" value="1">
+                  <input type="hidden" name="aksi" value="tampilkan_soal">
+                  <input type="hidden" name="id_soal" value="<?= $soal['id'] ?>">
+                  <input type="hidden" name="durasi" value="<?= (int)$soal['durasi'] ?>">
+                  <button class="ml-1 px-2 py-1 bg-orange-600 hover:bg-orange-700 text-white rounded text-xs font-bold shadow transition-all" onclick="return confirmTampilkanSoal(event, <?= $index + 1 ?>)"><i class="fa-solid fa-play"></i></button>
+                </form>
+              <?php endif; ?>
+              <?php if ($soal['id'] == $soal_aktif): ?>
+                <span class="ml-1 px-2 py-1 bg-orange-500 text-white rounded text-xs font-bold animate-pulse"><i class="fa-solid fa-bolt"></i> Soal Aktif</span>
+              <?php endif; ?>
+            </td>
+          </tr>
+          <?php endforeach; ?>
+        </tbody>
+      </table>
     </div>
     <?php if ($status && $mode !== 'waiting'): ?>
       <div class="mt-8 flex flex-wrap gap-4 items-center justify-center">

@@ -72,7 +72,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <form method="POST" enctype="multipart/form-data" class="space-y-4" id="formSoal">
       <div id="dropzone" class="dropzone flex flex-col items-center justify-center p-6 mb-2">
         <input type="file" name="gambar" id="gambarInput" accept="image/*" class="hidden">
-        <img id="imgPreview" class="img-preview hidden" alt="Preview Gambar">
+        <img id="imgPreview" class="img-preview hidden max-h-32 max-w-xs" alt="Preview Gambar">
+        <button type="button" id="btnHapusGambar" class="hidden mt-2 px-3 py-1 bg-red-500 hover:bg-red-600 text-white rounded text-sm flex items-center gap-2"><i class="fa-solid fa-trash"></i> Hapus Gambar</button>
         <div id="dropText" class="text-indigo-600 text-lg font-semibold flex flex-col items-center gap-2">
           <i class="fa-solid fa-image text-3xl"></i>
           Klik atau drag gambar ke sini untuk upload (opsional)
@@ -126,6 +127,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     const gambarInput = document.getElementById('gambarInput');
     const imgPreview = document.getElementById('imgPreview');
     const dropText = document.getElementById('dropText');
+    const btnHapusGambar = document.getElementById('btnHapusGambar');
 
     dropzone.addEventListener('click', () => gambarInput.click());
     dropzone.addEventListener('dragover', e => { e.preventDefault(); dropzone.classList.add('dragover'); });
@@ -146,13 +148,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
           imgPreview.src = e.target.result;
           imgPreview.classList.remove('hidden');
           dropText.classList.add('hidden');
+          btnHapusGambar.classList.remove('hidden');
         };
         reader.readAsDataURL(gambarInput.files[0]);
       } else {
         imgPreview.classList.add('hidden');
         dropText.classList.remove('hidden');
+        btnHapusGambar.classList.add('hidden');
       }
     }
+    btnHapusGambar.addEventListener('click', function(e) {
+      e.preventDefault();
+      e.stopPropagation();
+      gambarInput.value = '';
+      imgPreview.src = '';
+      imgPreview.classList.add('hidden');
+      dropText.classList.remove('hidden');
+      btnHapusGambar.classList.add('hidden');
+    });
   </script>
 </body>
 </html> 

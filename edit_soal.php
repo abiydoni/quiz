@@ -34,8 +34,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $upload_error = 'Format gambar tidak didukung.';
         }
     }
-    // Hapus gambar jika diminta
-    if (isset($_POST['hapus_gambar']) && $soal['gambar']) {
+    // Hapus gambar jika diminta via JS
+    if (isset($_POST['hapus_gambar_js']) && $_POST['hapus_gambar_js'] == '1' && $soal['gambar']) {
         $file = __DIR__ . '/assets/soal/' . $soal['gambar'];
         if (file_exists($file)) unlink($file);
         $gambar_nama = null;
@@ -67,14 +67,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <?php endif; ?>
     <form method="POST" enctype="multipart/form-data" class="space-y-4" id="formSoal">
       <?php if ($soal['gambar']): ?>
-        <div class="flex flex-col items-center mb-4">
-          <img id="imgPreview" src="assets/soal/<?= htmlspecialchars($soal['gambar']) ?>" alt="Preview Gambar" class="img-preview mb-2">
-          <button type="submit" name="hapus_gambar" class="px-3 py-1 bg-red-500 hover:bg-red-600 text-white rounded text-sm flex items-center gap-2"><i class="fa-solid fa-trash"></i> Hapus Gambar</button>
+        <div id="gambarArea" class="flex flex-col items-center mb-4">
+          <img id="imgPreview" src="assets/soal/<?= htmlspecialchars($soal['gambar']) ?>" alt="Preview Gambar" class="img-preview mb-2 max-h-32 max-w-xs">
+          <button type="button" id="btnHapusGambarJs" class="mt-2 px-3 py-1 bg-red-500 hover:bg-red-600 text-white rounded text-sm flex items-center gap-2"><i class="fa-solid fa-trash"></i> Hapus Gambar</button>
+          <input type="hidden" name="hapus_gambar_js" id="hapusGambarJs" value="0">
         </div>
       <?php else: ?>
-        <div id="dropzone" class="dropzone flex flex-col items-center justify-center p-6 mb-2">
+        <div id="dropzone" class="dropzone border-2 border-dashed border-indigo-400 flex flex-col items-center justify-center p-6 mb-2">
           <input type="file" name="gambar" id="gambarInput" accept="image/*" class="hidden">
-          <img id="imgPreview" class="img-preview hidden" alt="Preview Gambar">
+          <img id="imgPreview" class="img-preview hidden max-h-32 max-w-xs" alt="Preview Gambar">
+          <button type="button" id="btnHapusGambar" class="hidden mt-2 px-3 py-1 bg-red-500 hover:bg-red-600 text-white rounded text-sm flex items-center gap-2"><i class="fa-solid fa-trash"></i> Hapus Gambar</button>
           <div id="dropText" class="text-indigo-600 text-lg font-semibold flex flex-col items-center gap-2">
             <i class="fa-solid fa-image text-3xl"></i>
             Klik atau drag gambar ke sini untuk upload (opsional)
@@ -130,6 +132,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     const gambarInput = document.getElementById('gambarInput');
     const imgPreview = document.getElementById('imgPreview');
     const dropText = document.getElementById('dropText');
+    const btnHapusGambar = document.getElementById('btnHapusGambar');
 
     dropzone.addEventListener('click', () => gambarInput.click());
     dropzone.addEventListener('dragover', e => { e.preventDefault(); dropzone.classList.add('dragover'); });
@@ -150,13 +153,85 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
           imgPreview.src = e.target.result;
           imgPreview.classList.remove('hidden');
           dropText.classList.add('hidden');
+          btnHapusGambar.classList.remove('hidden');
         };
         reader.readAsDataURL(gambarInput.files[0]);
       } else {
         imgPreview.classList.add('hidden');
         dropText.classList.remove('hidden');
+        btnHapusGambar.classList.add('hidden');
       }
     }
+    btnHapusGambar.addEventListener('click', function(e) {
+      e.preventDefault();
+      e.stopPropagation();
+      gambarInput.value = '';
+      imgPreview.src = '';
+      imgPreview.classList.add('hidden');
+      dropText.classList.remove('hidden');
+      btnHapusGambar.classList.add('hidden');
+    });
+    <?php endif; ?>
+    <?php if ($soal['gambar']): ?>
+    const btnHapusGambarJs = document.getElementById('btnHapusGambarJs');
+    const imgPreview = document.getElementById('imgPreview');
+    const hapusGambarJs = document.getElementById('hapusGambarJs');
+    const gambarArea = document.getElementById('gambarArea');
+    btnHapusGambarJs.addEventListener('click', function(e) {
+      e.preventDefault();
+      e.stopPropagation();
+      imgPreview.src = '';
+      imgPreview.classList.add('hidden');
+      btnHapusGambarJs.classList.add('hidden');
+      hapusGambarJs.value = '1';
+      // Tampilkan dropzone upload
+      gambarArea.innerHTML = `<div id=\"dropzone\" class=\"dropzone border-2 border-dashed border-indigo-400 flex flex-col items-center justify-center p-6 mb-2\">\n<input type=\"file\" name=\"gambar\" id=\"gambarInput\" accept=\"image/*\" class=\"hidden\">\n<img id=\"imgPreview\" class=\"img-preview hidden max-h-32 max-w-xs\" alt=\"Preview Gambar\">\n<button type=\"button\" id=\"btnHapusGambar\" class=\"hidden mt-2 px-3 py-1 bg-red-500 hover:bg-red-600 text-white rounded text-sm flex items-center gap-2\"><i class=\"fa-solid fa-trash\"></i> Hapus Gambar</button>\n<div id=\"dropText\" class=\"text-indigo-600 text-lg font-semibold flex flex-col items-center gap-2\">\n<i class=\"fa-solid fa-image text-3xl\"></i>\nKlik atau drag gambar ke sini untuk upload (opsional)\n</div>\n</div>`;
+      // Inisialisasi ulang event JS dropzone
+      setTimeout(function() {
+        const dropzone = document.getElementById('dropzone');
+        const gambarInput = document.getElementById('gambarInput');
+        const imgPreview = document.getElementById('imgPreview');
+        const dropText = document.getElementById('dropText');
+        const btnHapusGambar = document.getElementById('btnHapusGambar');
+        dropzone.addEventListener('click', () => gambarInput.click());
+        dropzone.addEventListener('dragover', e => { e.preventDefault(); dropzone.classList.add('dragover'); });
+        dropzone.addEventListener('dragleave', e => { e.preventDefault(); dropzone.classList.remove('dragover'); });
+        dropzone.addEventListener('drop', e => {
+          e.preventDefault();
+          dropzone.classList.remove('dragover');
+          if (e.dataTransfer.files.length) {
+            gambarInput.files = e.dataTransfer.files;
+            showPreview();
+          }
+        });
+        gambarInput.addEventListener('change', showPreview);
+        function showPreview() {
+          if (gambarInput.files && gambarInput.files[0]) {
+            const reader = new FileReader();
+            reader.onload = e => {
+              imgPreview.src = e.target.result;
+              imgPreview.classList.remove('hidden');
+              dropText.classList.add('hidden');
+              btnHapusGambar.classList.remove('hidden');
+            };
+            reader.readAsDataURL(gambarInput.files[0]);
+          } else {
+            imgPreview.classList.add('hidden');
+            dropText.classList.remove('hidden');
+            btnHapusGambar.classList.add('hidden');
+          }
+        }
+        btnHapusGambar.addEventListener('click', function(e) {
+          e.preventDefault();
+          e.stopPropagation();
+          gambarInput.value = '';
+          imgPreview.src = '';
+          imgPreview.classList.add('hidden');
+          dropText.classList.remove('hidden');
+          btnHapusGambar.classList.add('hidden');
+        });
+      }, 10);
+    });
     <?php endif; ?>
   </script>
 </body>
